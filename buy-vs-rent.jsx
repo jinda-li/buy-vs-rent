@@ -391,8 +391,8 @@ export default function App() {
           {/* 模式选择 */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 10 }}>
             {[
-              ["same", "同等面积", "买卖双方面积相同，比较机会成本"],
-              ["diff", "不同面积", "自定义买房/租房面积，比较差异划算性"],
+              ["same", "同等面积", "理论机会成本", "控制面积变量，纯粹比较同一套房：买下来 vs 租着住，钱用在哪里更值？"],
+              ["diff", "不同面积", "实际选择对比", "还原真实决策：买得起的小房 vs 租得到的大房，财务与生活品质如何权衡？"],
             ].map(function(item) {
               var active = mode === item[0];
               return (
@@ -400,11 +400,18 @@ export default function App() {
                   style={{ padding: "10px 12px", borderRadius: 14, border: "2px solid", cursor: "pointer", textAlign: "left",
                     borderColor: active ? COLOR.primary : COLOR.border,
                     background: active ? "#EEF0FF" : "white" }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: active ? COLOR.primary : COLOR.text, marginBottom: 3 }}>{item[1]}</div>
-                  <div style={{ fontSize: 10, color: COLOR.muted, lineHeight: 1.4 }}>{item[2]}</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: active ? COLOR.primary : COLOR.text, marginBottom: 2 }}>{item[1]}</div>
+                  <div style={{ fontSize: 10, fontWeight: 600, color: active ? COLOR.primary : COLOR.muted, marginBottom: 4, opacity: 0.8 }}>{item[2]}</div>
+                  <div style={{ fontSize: 10, color: COLOR.muted, lineHeight: 1.5 }}>{item[3]}</div>
                 </button>
               );
             })}
+          </div>
+          <div style={{ marginTop: 8, padding: "9px 12px", borderRadius: 10, background: mode === "same" ? "#EEF0FF" : "#EEF9F5", fontSize: 11, color: mode === "same" ? COLOR.buy : COLOR.green, lineHeight: 1.6 }}>
+            {mode === "same"
+              ? "📐 当前模式：买卖面积锁定相同。排除居住空间的影响，单独回答「买 vs 租」这个财务问题。"
+              : "🏠 当前模式：买房和租房面积可以不同。模拟真实市场中你实际面临的两个选项，财务结果包含了面积差带来的成本差异。"
+            }
           </div>
         </div>
 

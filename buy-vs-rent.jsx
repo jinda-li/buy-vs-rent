@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
+import { toPng } from "html-to-image";
 
 // 各国参数来源：Finland税务局vero.fi / 中国LPR官方 / 美国Bankrate / 英国HMRC及Rightmove
 var CURRENCIES = {
@@ -150,10 +151,23 @@ function ChartTip(props) {
 
 var INV_RANGE  = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
+// Parse shared URL state from hash on first load
+var _init = (function() {
+  try {
+    var h = window.location.hash.slice(1);
+    if (h) { var p = JSON.parse(atob(h)); if (p && p.c) return p; }
+  } catch(e) {}
+  return null;
+})();
+
 export default function App() {
-  var sc  = useState("EUR");  var currency    = sc[0];  var setCurrency   = sc[1];
-  var sm  = useState("same"); var mode        = sm[0];  var setMode       = sm[1];
+  var _ic = (_init && CURRENCIES[_init.c]) ? _init.c : "EUR";
+  var sc  = useState(_ic);        var currency    = sc[0];  var setCurrency   = sc[1];
+  var sm  = useState(_init && _init.mo ? _init.mo : "same"); var mode = sm[0]; var setMode = sm[1];
   var cur = CURRENCIES[currency];
+  var mainRef   = useRef(null);
+  var sc2 = useState(false); var copied    = sc2[0]; var setCopied    = sc2[1];
+  var se  = useState(false); var exporting = se[0];  var setExporting = se[1];
 
   function fmtN(n) { return Math.abs(Math.round(n)).toLocaleString(cur.locale); }
   function fmt(n)  {
@@ -171,25 +185,25 @@ export default function App() {
 
   var bankFees = cur.bankFees;
 
-  var s1  = useState(cur.d.buyPPM);  var buyPPM     = s1[0];  var setBuyPPM     = s1[1];
-  var s2  = useState(60);            var area       = s2[0];  var setArea       = s2[1];
-  var s3  = useState(cur.d.fee);     var fee        = s3[0];  var setFee        = s3[1];
-  var s4  = useState(cur.d.rentPPM); var rentPPM    = s4[0];  var setRentPPM    = s4[1];
-  var s5  = useState(3.0);           var invRet     = s5[0];  var setInvRet     = s5[1];
-  var s6  = useState(1.5);           var propGrowth = s6[0];  var setPropGrowth = s6[1];
-  var s7  = useState(cur.d.mRate);   var mRate      = s7[0];  var setMRate      = s7[1];
-  var s8  = useState(cur.d.downPct); var downPct    = s8[0];  var setDownPct    = s8[1];
-  var s9  = useState(25);            var loanTerm   = s9[0];  var setLoanTerm   = s9[1];
-  var s10 = useState(1.3);           var rentGrowth = s10[0]; var setRentGrowth = s10[1];
-  var s11 = useState(2.3);           var feeGrowth  = s11[0]; var setFeeGrowth  = s11[1];
-  var s12 = useState(cur.d.txTax);   var txTax      = s12[0]; var setTxTax      = s12[1];
-  var s13 = useState(cur.d.agentFee);var agentFee   = s13[0]; var setAgentFee   = s13[1];
-  var s14 = useState(true);          var primaryRes = s14[0]; var setPrimaryRes = s14[1];
-  var s15 = useState(cur.d.invTax);  var invTax     = s15[0]; var setInvTax     = s15[1];
+  var s1  = useState(_init ? (_init.bp || cur.d.buyPPM)  : cur.d.buyPPM);  var buyPPM     = s1[0];  var setBuyPPM     = s1[1];
+  var s2  = useState(_init ? (_init.a  || 60)            : 60);            var area       = s2[0];  var setArea       = s2[1];
+  var s3  = useState(_init ? (_init.f  || cur.d.fee)     : cur.d.fee);     var fee        = s3[0];  var setFee        = s3[1];
+  var s4  = useState(_init ? (_init.rp || cur.d.rentPPM) : cur.d.rentPPM); var rentPPM    = s4[0];  var setRentPPM    = s4[1];
+  var s5  = useState(_init ? (_init.ir || 3.0)           : 3.0);           var invRet     = s5[0];  var setInvRet     = s5[1];
+  var s6  = useState(_init ? (_init.pg || 1.5)           : 1.5);           var propGrowth = s6[0];  var setPropGrowth = s6[1];
+  var s7  = useState(_init ? (_init.mr || cur.d.mRate)   : cur.d.mRate);   var mRate      = s7[0];  var setMRate      = s7[1];
+  var s8  = useState(_init ? (_init.dp || cur.d.downPct) : cur.d.downPct); var downPct    = s8[0];  var setDownPct    = s8[1];
+  var s9  = useState(_init ? (_init.lt || 25)            : 25);            var loanTerm   = s9[0];  var setLoanTerm   = s9[1];
+  var s10 = useState(_init ? (_init.rg || 1.3)           : 1.3);           var rentGrowth = s10[0]; var setRentGrowth = s10[1];
+  var s11 = useState(_init ? (_init.fg || 2.3)           : 2.3);           var feeGrowth  = s11[0]; var setFeeGrowth  = s11[1];
+  var s12 = useState(_init ? (_init.tt || cur.d.txTax)   : cur.d.txTax);   var txTax      = s12[0]; var setTxTax      = s12[1];
+  var s13 = useState(_init ? (_init.af || cur.d.agentFee): cur.d.agentFee);var agentFee   = s13[0]; var setAgentFee   = s13[1];
+  var s14 = useState(_init ? (_init.pr !== 0)            : true);          var primaryRes = s14[0]; var setPrimaryRes = s14[1];
+  var s15 = useState(_init ? (_init.it || cur.d.invTax)  : cur.d.invTax);  var invTax     = s15[0]; var setInvTax     = s15[1];
   var s16 = useState("net");         var tab        = s16[0]; var setTab        = s16[1];
   var s17 = useState(false);         var moreOpen   = s17[0]; var setMoreOpen   = s17[1];
-  var s18 = useState(60);            var buyArea    = s18[0]; var setBuyArea    = s18[1];
-  var s19 = useState(80);            var rentArea   = s19[0]; var setRentArea   = s19[1];
+  var s18 = useState(_init ? (_init.ba || 60) : 60); var buyArea  = s18[0]; var setBuyArea  = s18[1];
+  var s19 = useState(_init ? (_init.ra || 80) : 80); var rentArea = s19[0]; var setRentArea = s19[1];
 
   var effBuyArea  = mode === "same" ? area : buyArea;
   var effRentArea = mode === "same" ? area : rentArea;
@@ -360,6 +374,43 @@ export default function App() {
     setPrimaryRes(true); setInvTax(cur.d.invTax); setMoreOpen(false);
   }
 
+  function getShareUrl() {
+    var p = {
+      c: currency, mo: mode,
+      a: area, ba: buyArea, ra: rentArea,
+      bp: buyPPM, rp: rentPPM, f: fee,
+      mr: mRate, dp: downPct, lt: loanTerm,
+      ir: invRet, pg: propGrowth, rg: rentGrowth, fg: feeGrowth,
+      tt: txTax, af: agentFee, pr: primaryRes ? 1 : 0, it: invTax,
+    };
+    return window.location.origin + window.location.pathname + "#" + btoa(JSON.stringify(p));
+  }
+
+  function copyShareUrl() {
+    navigator.clipboard.writeText(getShareUrl()).then(function() {
+      setCopied(true);
+      setTimeout(function() { setCopied(false); }, 2500);
+    });
+  }
+
+  function exportImage() {
+    var node = mainRef.current;
+    if (!node || exporting) return;
+    setExporting(true);
+    var w = node.scrollWidth;
+    var h = node.scrollHeight;
+    toPng(node, { cacheBust: true, width: w, height: h,
+      style: { overflow: "visible", maxHeight: "none" } })
+      .then(function(dataUrl) {
+        var link = document.createElement("a");
+        link.download = "buy-vs-rent-" + currency + ".png";
+        link.href = dataUrl;
+        link.click();
+        setExporting(false);
+      })
+      .catch(function() { setExporting(false); });
+  }
+
   var crossStatus = crossings.length === 0
     ? (buyWins ? "买房领先" : "租房领先")
     : crossings.length === 1
@@ -370,7 +421,7 @@ export default function App() {
 
   return (
     <div style={{ minHeight: "100vh", background: COLOR.bg, fontFamily: "system-ui, sans-serif", color: COLOR.text }}>
-      <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 0 40px" }}>
+      <div ref={mainRef} style={{ maxWidth: 480, margin: "0 auto", padding: "0 0 40px" }}>
 
         {/* ── Header ── */}
         <div style={{ padding: "32px 20px 0" }}>
@@ -427,6 +478,29 @@ export default function App() {
               ? "📐 当前模式：买卖面积锁定相同。排除居住空间的影响，单独回答「买 vs 租」这个财务问题。"
               : "🏠 当前模式：买房和租房面积可以不同。模拟真实市场中你实际面临的两个选项，财务结果包含了面积差带来的成本差异。"
             }
+          </div>
+
+          {/* 分享 & 导出 */}
+          <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+            <button onClick={copyShareUrl}
+              style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
+                padding: "9px 0", borderRadius: 12, border: "1.5px solid",
+                borderColor: copied ? COLOR.green : COLOR.border,
+                background: copied ? "#EEF9F5" : "white",
+                color: copied ? COLOR.green : COLOR.sub,
+                fontSize: 12, fontWeight: 600, cursor: "pointer", transition: "all 0.2s" }}>
+              <span>{copied ? "✓" : "🔗"}</span>
+              <span>{copied ? "链接已复制" : "复制分享链接"}</span>
+            </button>
+            <button onClick={exportImage} disabled={exporting}
+              style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
+                padding: "9px 0", borderRadius: 12, border: "1.5px solid " + COLOR.border,
+                background: exporting ? "#F4F3FF" : "white",
+                color: exporting ? COLOR.primary : COLOR.sub,
+                fontSize: 12, fontWeight: 600, cursor: exporting ? "default" : "pointer", opacity: exporting ? 0.7 : 1 }}>
+              <span>{exporting ? "⏳" : "🖼"}</span>
+              <span>{exporting ? "生成中..." : "导出长图"}</span>
+            </button>
           </div>
         </div>
 

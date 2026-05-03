@@ -479,29 +479,6 @@ export default function App() {
               : "🏠 当前模式：买房和租房面积可以不同。模拟真实市场中你实际面临的两个选项，财务结果包含了面积差带来的成本差异。"
             }
           </div>
-
-          {/* 分享 & 导出 */}
-          <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-            <button onClick={copyShareUrl}
-              style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
-                padding: "9px 0", borderRadius: 12, border: "1.5px solid",
-                borderColor: copied ? COLOR.green : COLOR.border,
-                background: copied ? "#EEF9F5" : "white",
-                color: copied ? COLOR.green : COLOR.sub,
-                fontSize: 12, fontWeight: 600, cursor: "pointer", transition: "all 0.2s" }}>
-              <span>{copied ? "✓" : "🔗"}</span>
-              <span>{copied ? "链接已复制" : "复制分享链接"}</span>
-            </button>
-            <button onClick={exportImage} disabled={exporting}
-              style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
-                padding: "9px 0", borderRadius: 12, border: "1.5px solid " + COLOR.border,
-                background: exporting ? "#F4F3FF" : "white",
-                color: exporting ? COLOR.primary : COLOR.sub,
-                fontSize: 12, fontWeight: 600, cursor: exporting ? "default" : "pointer", opacity: exporting ? 0.7 : 1 }}>
-              <span>{exporting ? "⏳" : "🖼"}</span>
-              <span>{exporting ? "生成中..." : "导出长图"}</span>
-            </button>
-          </div>
         </div>
 
         {/* ── 月支出概览 ── */}
@@ -1095,6 +1072,33 @@ export default function App() {
               以上就是机会成本的本质：在另一方案中你能获得的这些好处，正是你选择当前方案时必须放弃的真实代价——你为这个决定所付出的隐性成本。
             </div>
           </Card>
+
+          {/* ── 分享 & 导出 ── */}
+          <div style={{ padding: "0 20px 8px" }}>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={copyShareUrl}
+                style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
+                  padding: "13px 0", borderRadius: 14, border: "1.5px solid",
+                  borderColor: copied ? COLOR.green : COLOR.border,
+                  background: copied ? "#EEF9F5" : "white",
+                  color: copied ? COLOR.green : COLOR.sub,
+                  fontSize: 13, fontWeight: 600, cursor: "pointer", transition: "all 0.2s",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+                <span>{copied ? "✓" : "🔗"}</span>
+                <span>{copied ? "链接已复制" : "复制分享链接"}</span>
+              </button>
+              <button onClick={exportImage} disabled={exporting}
+                style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
+                  padding: "13px 0", borderRadius: 14, border: "1.5px solid " + COLOR.border,
+                  background: exporting ? "#F4F3FF" : "white",
+                  color: exporting ? COLOR.primary : COLOR.sub,
+                  fontSize: 13, fontWeight: 600, cursor: exporting ? "default" : "pointer",
+                  opacity: exporting ? 0.7 : 1, boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+                <span>{exporting ? "⏳" : "🖼"}</span>
+                <span>{exporting ? "生成中..." : "导出长图"}</span>
+              </button>
+            </div>
+          </div>
 
         </div>
       </div>

@@ -397,10 +397,18 @@ export default function App() {
     var node = mainRef.current;
     if (!node || exporting) return;
     setExporting(true);
-    var w = node.scrollWidth;
+    var w = node.offsetWidth;
     var h = node.scrollHeight;
-    toPng(node, { cacheBust: true, width: w, height: h,
-      style: { overflow: "visible", maxHeight: "none" } })
+    // pixelRatio 2 for retina/mobile sharpness, capped at 2 to keep file size reasonable
+    var dpr = Math.min(typeof window !== "undefined" ? (window.devicePixelRatio || 1) : 1, 2);
+    toPng(node, {
+      cacheBust: true,
+      backgroundColor: COLOR.bg,
+      width: w,
+      height: h,
+      pixelRatio: dpr,
+      style: { overflow: "visible", maxHeight: "none", height: h + "px" },
+    })
       .then(function(dataUrl) {
         var link = document.createElement("a");
         link.download = "buy-vs-rent-" + currency + ".png";
@@ -408,6 +416,8 @@ export default function App() {
         link.click();
         setExporting(false);
       })
+      .catch(function() { setExporting(false); });
+  }
       .catch(function() { setExporting(false); });
   }
 
@@ -421,7 +431,7 @@ export default function App() {
 
   return (
     <div style={{ minHeight: "100vh", background: COLOR.bg, fontFamily: "system-ui, sans-serif", color: COLOR.text }}>
-      <div ref={mainRef} style={{ maxWidth: 480, margin: "0 auto", padding: "0 0 40px" }}>
+      <div ref={mainRef} style={{ maxWidth: 480, margin: "0 auto", padding: "0 0 40px", background: COLOR.bg }}>
 
         {/* ── Header ── */}
         <div style={{ padding: "32px 20px 0" }}>

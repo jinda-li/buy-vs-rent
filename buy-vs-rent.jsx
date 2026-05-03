@@ -397,17 +397,21 @@ export default function App() {
     var node = mainRef.current;
     if (!node || exporting) return;
     setExporting(true);
-    var w = node.offsetWidth;
     var h = node.scrollHeight;
-    // pixelRatio 2 for retina/mobile sharpness, capped at 2 to keep file size reasonable
-    var dpr = Math.min(typeof window !== "undefined" ? (window.devicePixelRatio || 1) : 1, 2);
     toPng(node, {
       cacheBust: true,
       backgroundColor: COLOR.bg,
-      width: w,
+      width: 480,
       height: h,
-      pixelRatio: dpr,
-      style: { overflow: "visible", maxHeight: "none", height: h + "px" },
+      pixelRatio: 2,
+      style: {
+        width: "480px",
+        maxWidth: "480px",
+        margin: "0",
+        overflow: "visible",
+        maxHeight: "none",
+        height: h + "px",
+      },
     })
       .then(function(dataUrl) {
         var link = document.createElement("a");

@@ -1,22 +1,27 @@
 import { useState, useMemo } from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 
+// 各国参数来源：Finland税务局vero.fi / 中国LPR官方 / 美国Bankrate / 英国HMRC及Rightmove
 var CURRENCIES = {
-  EUR: { sym: "€",  locale: "fi-FI", after: true,  bankFees: 500,
-    label: "欧元 EUR",
-    d: { buyPPM: 3300,  rentPPM: 15,  fee: 270 },
+  EUR: { sym: "€",  locale: "fi-FI", after: true,  bankFees: 800,
+    label: "欧元 EUR", country: "芬兰", example: "以芬兰为例",
+    // 过户税: asunto-osake公寓1.5%（2024年起）；贷款利率: 12m Euribor+行margin约3%；中介费: 赫尔辛基3-4.5%；资本利得税30%
+    d: { buyPPM: 3300,  rentPPM: 15,  fee: 270, mRate: 3.0, txTax: 1.5, agentFee: 3.5, invTax: 30, downPct: 20 },
     r: { buyPPM: [500, 10000, 100],   rentPPM: [3, 60, 0.5],  fee: [50, 2000, 10]  } },
   CNY: { sym: "¥",  locale: "zh-CN", after: false, bankFees: 5000,
-    label: "人民币 CNY",
-    d: { buyPPM: 25000, rentPPM: 80,  fee: 500 },
+    label: "人民币 CNY", country: "中国", example: "以中国为例",
+    // 契税: 首套90-144㎡1.5%；贷款利率: 5年期LPR 3.5%（2025年5月）；中介费: 约2%；资本利得税20%
+    d: { buyPPM: 25000, rentPPM: 80,  fee: 500, mRate: 3.5, txTax: 1.5, agentFee: 2.0, invTax: 20, downPct: 20 },
     r: { buyPPM: [3000, 150000, 1000], rentPPM: [20, 300, 5], fee: [100, 5000, 100] } },
-  USD: { sym: "$",  locale: "en-US", after: false, bankFees: 3000,
-    label: "美元 USD",
-    d: { buyPPM: 5000,  rentPPM: 25,  fee: 400 },
+  USD: { sym: "$",  locale: "en-US", after: false, bankFees: 4000,
+    label: "美元 USD", country: "美国", example: "以美国为例",
+    // 过户税: 各州差异大，买方约0.5%（多数closing costs含在bankFees）；30年固定约6.3%（2026）；中介费NAR后约2.5%；资本利得税20%
+    d: { buyPPM: 4000,  rentPPM: 25,  fee: 400, mRate: 6.5, txTax: 0.5, agentFee: 2.5, invTax: 20, downPct: 20 },
     r: { buyPPM: [500, 25000, 100],   rentPPM: [5, 100, 1],   fee: [100, 2000, 50] } },
   GBP: { sym: "£",  locale: "en-GB", after: false, bankFees: 2000,
-    label: "英镑 GBP",
-    d: { buyPPM: 7000,  rentPPM: 30,  fee: 300 },
+    label: "英镑 GBP", country: "英国", example: "以英国为例",
+    // SDLT: £400k房产约2.5%（累进税率）；抵押贷款5年固定约4.5%（2025）；EA中介费约1.5%含VAT；资本利得税20%
+    d: { buyPPM: 3500,  rentPPM: 18,  fee: 250, mRate: 4.5, txTax: 2.5, agentFee: 1.5, invTax: 20, downPct: 20 },
     r: { buyPPM: [1000, 30000, 200],  rentPPM: [5, 100, 1],   fee: [50, 2000, 50]  } },
 };
 
@@ -172,15 +177,15 @@ export default function App() {
   var s4  = useState(cur.d.rentPPM); var rentPPM    = s4[0];  var setRentPPM    = s4[1];
   var s5  = useState(3.0);           var invRet     = s5[0];  var setInvRet     = s5[1];
   var s6  = useState(1.5);           var propGrowth = s6[0];  var setPropGrowth = s6[1];
-  var s7  = useState(2.8);           var mRate      = s7[0];  var setMRate      = s7[1];
-  var s8  = useState(20);            var downPct    = s8[0];  var setDownPct    = s8[1];
+  var s7  = useState(cur.d.mRate);   var mRate      = s7[0];  var setMRate      = s7[1];
+  var s8  = useState(cur.d.downPct); var downPct    = s8[0];  var setDownPct    = s8[1];
   var s9  = useState(25);            var loanTerm   = s9[0];  var setLoanTerm   = s9[1];
   var s10 = useState(1.3);           var rentGrowth = s10[0]; var setRentGrowth = s10[1];
   var s11 = useState(2.3);           var feeGrowth  = s11[0]; var setFeeGrowth  = s11[1];
-  var s12 = useState(1.5);           var txTax      = s12[0]; var setTxTax      = s12[1];
-  var s13 = useState(3.5);           var agentFee   = s13[0]; var setAgentFee   = s13[1];
+  var s12 = useState(cur.d.txTax);   var txTax      = s12[0]; var setTxTax      = s12[1];
+  var s13 = useState(cur.d.agentFee);var agentFee   = s13[0]; var setAgentFee   = s13[1];
   var s14 = useState(true);          var primaryRes = s14[0]; var setPrimaryRes = s14[1];
-  var s15 = useState(20);            var invTax     = s15[0]; var setInvTax     = s15[1];
+  var s15 = useState(cur.d.invTax);  var invTax     = s15[0]; var setInvTax     = s15[1];
   var s16 = useState("net");         var tab        = s16[0]; var setTab        = s16[1];
   var s17 = useState(false);         var moreOpen   = s17[0]; var setMoreOpen   = s17[1];
   var s18 = useState(60);            var buyArea    = s18[0]; var setBuyArea    = s18[1];
@@ -340,15 +345,19 @@ export default function App() {
   function applyPreset(c) {
     var p = CURRENCIES[c];
     setBuyPPM(p.d.buyPPM); setRentPPM(p.d.rentPPM); setFee(p.d.fee);
+    setMRate(p.d.mRate); setTxTax(p.d.txTax); setAgentFee(p.d.agentFee);
+    setInvTax(p.d.invTax); setDownPct(p.d.downPct);
     setCurrency(c);
   }
 
   function doReset() {
     setArea(60); setBuyArea(60); setRentArea(80);
-    setBuyPPM(cur.d.buyPPM); setFee(cur.d.fee); setRentPPM(cur.d.rentPPM); setInvRet(3.0);
-    setPropGrowth(1.5); setMRate(2.8); setDownPct(20); setLoanTerm(25);
-    setRentGrowth(1.3); setFeeGrowth(2.3); setTxTax(1.5); setAgentFee(3.5);
-    setPrimaryRes(true); setInvTax(20); setMoreOpen(false);
+    setBuyPPM(cur.d.buyPPM); setFee(cur.d.fee); setRentPPM(cur.d.rentPPM);
+    setInvRet(3.0); setPropGrowth(1.5);
+    setMRate(cur.d.mRate); setDownPct(cur.d.downPct); setLoanTerm(25);
+    setRentGrowth(1.3); setFeeGrowth(2.3);
+    setTxTax(cur.d.txTax); setAgentFee(cur.d.agentFee);
+    setPrimaryRes(true); setInvTax(cur.d.invTax); setMoreOpen(false);
   }
 
   var crossStatus = crossings.length === 0
@@ -382,11 +391,13 @@ export default function App() {
               var active = currency === key;
               return (
                 <button key={key} onClick={function() { applyPreset(key); }}
-                  style={{ padding: "5px 12px", borderRadius: 20, border: "1.5px solid", cursor: "pointer", fontSize: 11, fontWeight: 600,
+                  style={{ padding: "5px 10px", borderRadius: 20, border: "1.5px solid", cursor: "pointer",
                     borderColor: active ? COLOR.primary : COLOR.border,
                     background: active ? "#EEF0FF" : "white",
-                    color: active ? COLOR.primary : COLOR.muted }}>
-                  {CURRENCIES[key].label}
+                    color: active ? COLOR.primary : COLOR.muted,
+                    display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
+                  <span style={{ fontSize: 11, fontWeight: 600 }}>{CURRENCIES[key].label}</span>
+                  <span style={{ fontSize: 9, opacity: active ? 0.75 : 0.55, fontWeight: 500 }}>{CURRENCIES[key].example}</span>
                 </button>
               );
             })}
@@ -572,12 +583,12 @@ export default function App() {
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 20px" }}>
                   <div>
                     <div style={{ fontSize: 12, fontWeight: 700, color: COLOR.buy, marginBottom: 14 }}>买房参数</div>
-                    <SliderField label="贷款利率" value={mRate} min={1} max={7} step={0.1} onChange={setMRate} display={mRate + "%"} color={COLOR.buy} sub="当地银行参考利率" />
+                    <SliderField label="贷款利率" value={mRate} min={1} max={7} step={0.1} onChange={setMRate} display={mRate + "%"} color={COLOR.buy} sub={cur.country + " 参考 " + cur.d.mRate + "%"} />
                     <SliderField label="首付比例" value={downPct} min={5} max={50} step={5} onChange={setDownPct} display={downPct + "%"} color={COLOR.buy} sub={"= " + fmt(down)} />
                     <SliderField label="贷款年限" value={loanTerm} min={5} max={30} step={1} onChange={setLoanTerm} display={loanTerm + " 年"} color={COLOR.buy} />
                     <SliderField label="房价年涨幅" value={propGrowth} min={-2} max={6} step={0.5} onChange={setPropGrowth} display={propGrowth + "%"} color={COLOR.buy} sub="历史均值参考" />
-                    <SliderField label="过户税/契税" value={txTax} min={0} max={5} step={0.5} onChange={setTxTax} display={txTax + "%"} color={COLOR.buy} sub={"= " + fmt(txAmt)} />
-                    <SliderField label="卖房中介费" value={agentFee} min={0} max={6} step={0.5} onChange={setAgentFee} display={agentFee + "%"} color={COLOR.buy} sub="当地市场参考" />
+                    <SliderField label="过户税/契税" value={txTax} min={0} max={5} step={0.5} onChange={setTxTax} display={txTax + "%"} color={COLOR.buy} sub={cur.country + " 参考 " + cur.d.txTax + "%，= " + fmt(txAmt)} />
+                    <SliderField label="卖房中介费" value={agentFee} min={0} max={6} step={0.5} onChange={setAgentFee} display={agentFee + "%"} color={COLOR.buy} sub={cur.country + " 参考 " + cur.d.agentFee + "%"} />
                     <SliderField label="物业费涨幅" value={feeGrowth} min={0} max={5} step={0.5} onChange={setFeeGrowth} display={feeGrowth + "%"} color={COLOR.buy} sub="历史均值参考" />
                     <div style={{ marginBottom: 14 }}>
                       <Label>卖房资本利得税</Label>

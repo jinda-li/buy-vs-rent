@@ -838,119 +838,159 @@ export default function App() {
             </div>
           </Card>
 
-          {/* ── 机会成本（财务 + 生活） ── */}
+          {/* ── 综合对比 ── */}
           <Card p="20px" style={{ marginTop: 12 }}>
-            <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>机会成本</div>
-            <div style={{ fontSize: 12, color: COLOR.muted, marginBottom: 16, lineHeight: 1.6 }}>
-              买房和租房的每个选择都意味着放弃另一种可能。以下从财务和生活两个维度，梳理你真正在放弃什么。
+            <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>综合对比</div>
+            <div style={{ fontSize: 12, color: COLOR.muted, marginBottom: 14, lineHeight: 1.6 }}>
+              买房和租房各有真实的好处。以下列出每种方案能为你带来什么——<strong style={{ color: COLOR.text }}>加粗部分</strong>是该维度的优胜方。
             </div>
 
-            {/* 财务机会成本 */}
-            <div style={{ fontSize: 12, fontWeight: 700, color: COLOR.text, marginBottom: 10 }}>财务机会成本</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 10 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.buy, background: "#EEF0FF", borderRadius: 8, padding: "6px 10px" }}>← 买房放弃了什么</div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.green, background: "#EEF9F5", borderRadius: 8, padding: "6px 10px" }}>← 租房放弃了什么</div>
+            {/* 列标题 */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 14 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.buy, background: "#EEF0FF", borderRadius: 8, padding: "7px 10px" }}>买房能获得</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.green, background: "#EEF9F5", borderRadius: 8, padding: "7px 10px" }}>租房能获得</div>
             </div>
+
+            {/* 财务维度 */}
+            <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.muted, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 12 }}>财务维度</div>
             {[
               {
                 label: "初始资金",
-                buy: "首付 " + fmt(down) + " + 手续费 " + fmt(txAmt + bankFees) + " = " + fmt(outlay) + "，一次性锁进房产，长期无法流动",
-                rent: "同等 " + fmt(outlay) + " 第0天全部入市，立即开始复利滚动，随时可调仓",
+                buy: "首付+手续费共 " + fmt(outlay) + "，换来 " + fmt(price) + " 的房产，" + Math.round(100 / downPct) + " 倍杠杆从第一天起放大增值空间",
+                rent: "同等 " + fmt(outlay) + " 全部入市，立即开始复利滚动，随时可动用或调仓，不被单一资产锁定",
                 adv: COLOR.green,
               },
               {
-                label: "月度现金流",
-                buy: "月供+物业 " + fmt(buyMonthly) + "，其中利息约 " + fmt(firstMonthInterest) + "/月 是纯消耗，不形成任何权益",
+                label: "月度积累",
+                buy: "月供本金部分是强制储蓄，" + loanTerm + " 年后房产完全属于自己，还清后彻底告别月供",
                 rent: saving >= 0
-                  ? "月租 " + fmt(rent0) + "，每月节省 " + fmt(saving) + " 可追加投资"
-                  : "月租 " + fmt(rent0) + "，比买房月支出多 " + fmt(-saving) + "，需额外现金流",
+                  ? "月租 " + fmt(rent0) + "，每月节省 " + fmt(saving) + " 可追加投资，现金流更充裕"
+                  : "月租 " + fmt(rent0) + "，收入下降时可换小房主动降负，月支出灵活可调",
                 adv: saving >= 0 ? COLOR.green : COLOR.buy,
               },
               {
-                label: "杠杆",
-                buy: Math.round(100 / downPct) + " 倍杠杆：首付 " + fmt(down) + " 控制 " + fmt(price) + " 的资产，房价每涨1%，净资产涨幅被放大",
-                rent: "无杠杆，收益完全来自实际投入本金，不存在因房价下跌被放大亏损的风险",
-                adv: COLOR.buy,
+                label: loanTerm + " 年后净资产",
+                buy: "房产预计市值 " + fmt(last ? last.rawPV : 0) + "，扣除贷款余额和交易成本后到手 " + fmt(last ? last.rawB : 0),
+                rent: "投资组合年化 " + invRet + "%，" + loanTerm + " 年后税后到手 " + fmt(last ? last.rawR : 0),
+                adv: buyWins ? COLOR.buy : COLOR.green,
               },
               {
-                label: "资产分散度",
-                buy: "100% 集中于单一不动产，完全暴露于所在城市的房价单一风险",
-                rent: "可分散至全球股票、债券等多类资产，一个 ETF 即可持有数千家公司",
+                label: "资产分散",
+                buy: "持有实物资产，抵御通胀效果显著，房产兼具使用价值和资产价值",
+                rent: "可分散至全球股票、债券等多类资产，单一市场下跌不会摧毁全部积累",
                 adv: COLOR.green,
               },
               {
                 label: "流动性",
-                buy: "卖房周期 3–6 个月，急需用钱时无法快速变现，生活变化时选项受限",
-                rent: "随时可卖出，1–3 个工作日到账，面对人生变化时可快速响应",
+                buy: "产权完整归属自己，可随时申请抵押贷款，出售后全部净值归属自己",
+                rent: "投资组合 1–3 个工作日可变现，生活有重大变化时资金随时响应",
                 adv: COLOR.green,
               },
               {
-                label: "储蓄纪律",
-                buy: "月供自动执行，强制储蓄，执行率100%，不依赖意志力，" + loanTerm + " 年后房产完全属于自己",
-                rent: saving >= 0
-                  ? "需主动把 " + fmt(saving) + "/月 纪律性投入理财，坚持 " + loanTerm + " 年且市场暴跌时不卖出"
-                  : "月支出更高，需更强的收支管理，若纪律不足则数学优势大打折扣",
+                label: "执行门槛",
+                buy: "月供自动扣款，强制储蓄，执行率 100%，不依赖意志力，任何市场行情下都持续积累",
+                rent: "需主动把 " + fmt(Math.abs(saving)) + "/月 纪律性投入理财，坚持 " + loanTerm + " 年，市场暴跌时尤其考验定力",
                 adv: COLOR.buy,
               },
             ].map(function(row, idx) {
+              var buyWinsRow = row.adv === COLOR.buy;
               return (
-                <div key={idx} style={{ marginBottom: idx < 5 ? 14 : 0, paddingBottom: idx < 5 ? 14 : 0, borderBottom: idx < 5 ? "1px solid " + COLOR.border : "none" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                <div key={idx} style={{ marginBottom: 14, paddingBottom: 14, borderBottom: "1px solid " + COLOR.border }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 7 }}>
                     <span style={{ fontSize: 11, fontWeight: 700, color: COLOR.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>{row.label}</span>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: row.adv, background: row.adv === COLOR.buy ? "#EEF0FF" : "#EEF9F5", padding: "2px 8px", borderRadius: 999 }}>
-                      {row.adv === COLOR.buy ? "买房占优" : "租房占优"}
+                    <span style={{ fontSize: 10, fontWeight: 700, color: row.adv, background: buyWinsRow ? "#EEF0FF" : "#EEF9F5", padding: "2px 8px", borderRadius: 999 }}>
+                      {buyWinsRow ? "买房占优" : "租房占优"}
                     </span>
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                    <div style={{ fontSize: 12, color: COLOR.sub, lineHeight: 1.5, borderLeft: "2px solid " + COLOR.buy, paddingLeft: 8 }}>{row.buy}</div>
-                    <div style={{ fontSize: 12, color: COLOR.sub, lineHeight: 1.5, borderLeft: "2px solid " + COLOR.green, paddingLeft: 8 }}>{row.rent}</div>
+                    <div style={{ fontSize: 12, lineHeight: 1.6, borderLeft: "2.5px solid " + (buyWinsRow ? COLOR.buy : "#DDD"), paddingLeft: 8,
+                      fontWeight: buyWinsRow ? 600 : 400, color: buyWinsRow ? COLOR.text : "#ABABAB" }}>{row.buy}</div>
+                    <div style={{ fontSize: 12, lineHeight: 1.6, borderLeft: "2.5px solid " + (!buyWinsRow ? COLOR.green : "#DDD"), paddingLeft: 8,
+                      fontWeight: !buyWinsRow ? 600 : 400, color: !buyWinsRow ? COLOR.text : "#ABABAB" }}>{row.rent}</div>
                   </div>
                 </div>
               );
             })}
 
-            <div style={{ background: COLOR.bg, borderRadius: 10, padding: "12px 14px", fontSize: 12, color: COLOR.sub, lineHeight: 1.7, marginBottom: 16 }}>
-              <strong style={{ color: COLOR.text }}>财务结论：</strong>
-              {buyWins
-                ? " 当前参数下买房机会成本更低——房产升值（" + propGrowth + "%/年）和杠杆效应共同弥补了资金锁定与交易成本的损失。"
-                : " 当前参数下租房机会成本更低——将首付投入市场（" + invRet + "%/年）、每月纪律性追投，" + loanTerm + " 年后复利积累超越了房产增值与杠杆带来的收益。"
-              }
-              {" "}保本收益率为 <strong style={{ color: invRet >= breakEvenRate ? COLOR.green : COLOR.buy }}>{breakEvenRate}%</strong>——租房方案年化收益率需超过此值，净资产才能追平买房。
+            {/* 财务结论 */}
+            <div style={{ background: buyWins ? "#EEF0FF" : "#EEF9F5", borderRadius: 12, padding: "12px 14px", marginBottom: 20 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: buyWins ? COLOR.buy : COLOR.green }}>
+                  财务结论：{buyWins ? "买房" : "租房"}方案净资产更高
+                </span>
+                <span style={{ fontSize: 14, fontWeight: 800, fontFamily: "monospace", color: COLOR.text }}>
+                  {loanTerm}年领先 {fmt(last ? Math.abs(last.rawB - last.rawR) : 0)}
+                </span>
+              </div>
+              <div style={{ fontSize: 11, color: COLOR.sub, lineHeight: 1.6 }}>
+                保本收益率 <strong>{breakEvenRate}%</strong> — 租房方案年化收益需超过此值，净资产才能追平买房。当前设定 {invRet}% {invRet >= breakEvenRate ? "已超过，租房胜出" : "未超过，买房胜出"}。
+              </div>
             </div>
 
-            {/* 生活机会成本 */}
-            <div style={{ fontSize: 12, fontWeight: 700, color: COLOR.text, marginBottom: 6, paddingTop: 14, borderTop: "1px solid " + COLOR.border }}>生活机会成本</div>
-            <div style={{ fontSize: 12, color: COLOR.muted, marginBottom: 10, lineHeight: 1.5 }}>
-              这些是财务模型无法量化、但同样真实的放弃——每种优势背后都藏着对应的代价。
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 14 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.buy, background: "#EEF0FF", borderRadius: 8, padding: "6px 10px" }}>← 买房放弃了什么</div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.green, background: "#EEF9F5", borderRadius: 8, padding: "6px 10px" }}>← 租房放弃了什么</div>
-            </div>
+            {/* 生活维度 */}
+            <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.muted, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 12 }}>生活维度</div>
             {[
-              ["稳定性",      "永久居住权，不受房东约束，适合长期定居",           "合同到期面临搬家或涨价风险，居住稳定性依赖房东意愿",   COLOR.buy],
-              ["流动性与自由度","换城市需要卖房，周期数月，人生重大决策受到房产牵绊", "随时离开，换城市换工作毫无包袱，人生选项始终开放",   COLOR.green],
-              ["个性化与归属感","完全自主改造，真正的家，添置长期物品不心疼",        "通常不能大幅改造，在别人设计的空间里将就生活",        COLOR.buy],
-              ["财务弹性",    "月供固定，收入下降、失业或利率上涨时压力高度集中",  "收入下降可换小房降租，月支出具有主动调节空间",        COLOR.green],
-              ["维修与管理",  "大修费用自担，突发问题需自行投入时间和金钱处理",    "联系房东即可，省时省力，但掌控感和响应速度依赖房东",   COLOR.green],
-              ["邻里与社区",  "长期定居有助于建立深度邻里关系和归属感",           "搬家频率较高，难以形成持续稳定的社区连接",           COLOR.buy],
+              {
+                label: "居住保障",
+                buy: "永久产权，住多久由自己决定，不受任何人驱逐，心理上真正的家",
+                rent: "灵活自由，随时可以换环境，没有长期居住义务，生活选项始终开放",
+                adv: COLOR.buy,
+              },
+              {
+                label: "生活自由度",
+                buy: "在一座城市深耕，建立稳定根基，适合长期规划定居",
+                rent: "换城市、换工作零障碍，人生重大转折无需先解决房产",
+                adv: COLOR.green,
+              },
+              {
+                label: "个性化空间",
+                buy: "完全自主改造装修，按自己的想法生活，添置长期物品无后顾之忧",
+                rent: "无装修负担，入住即可使用，维修保养交给房东，省时省力",
+                adv: COLOR.buy,
+              },
+              {
+                label: "财务弹性",
+                buy: "月供固定，不受租金市场波动影响，长期住房成本可准确预期",
+                rent: "收入下降可主动换小房，月支出始终在自己掌控中",
+                adv: COLOR.green,
+              },
+              {
+                label: "维修管理",
+                buy: "完全掌控房屋，可按自己意愿升级改善，增值归属自己",
+                rent: "维修保养联系房东即可，省去时间和精力，专注自己的生活",
+                adv: COLOR.green,
+              },
+              {
+                label: "社区归属",
+                buy: "长期定居形成深度邻里关系，归属感和安全感更强",
+                rent: "接触不同社区和人群，生活体验更多元，适应力更强",
+                adv: COLOR.buy,
+              },
             ].map(function(row, idx) {
+              var buyWinsRow = row.adv === COLOR.buy;
               var isLast = idx === 5;
               return (
                 <div key={idx} style={{ marginBottom: isLast ? 0 : 14, paddingBottom: isLast ? 0 : 14, borderBottom: isLast ? "none" : "1px solid " + COLOR.border }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: COLOR.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>{row[0]}</span>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: row[3], background: row[3] === COLOR.buy ? "#EEF0FF" : "#EEF9F5", padding: "2px 8px", borderRadius: 999 }}>
-                      {row[3] === COLOR.buy ? "买房占优" : "租房占优"}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 7 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: COLOR.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>{row.label}</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: row.adv, background: buyWinsRow ? "#EEF0FF" : "#EEF9F5", padding: "2px 8px", borderRadius: 999 }}>
+                      {buyWinsRow ? "买房占优" : "租房占优"}
                     </span>
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                    <div style={{ fontSize: 12, color: COLOR.sub, lineHeight: 1.5, borderLeft: "2px solid " + COLOR.buy, paddingLeft: 8 }}>{row[1]}</div>
-                    <div style={{ fontSize: 12, color: COLOR.sub, lineHeight: 1.5, borderLeft: "2px solid " + COLOR.green, paddingLeft: 8 }}>{row[2]}</div>
+                    <div style={{ fontSize: 12, lineHeight: 1.6, borderLeft: "2.5px solid " + (buyWinsRow ? COLOR.buy : "#DDD"), paddingLeft: 8,
+                      fontWeight: buyWinsRow ? 600 : 400, color: buyWinsRow ? COLOR.text : "#ABABAB" }}>{row.buy}</div>
+                    <div style={{ fontSize: 12, lineHeight: 1.6, borderLeft: "2.5px solid " + (!buyWinsRow ? COLOR.green : "#DDD"), paddingLeft: 8,
+                      fontWeight: !buyWinsRow ? 600 : 400, color: !buyWinsRow ? COLOR.text : "#ABABAB" }}>{row.rent}</div>
                   </div>
                 </div>
               );
             })}
+
+            {/* 注脚 */}
+            <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid " + COLOR.border, fontSize: 11, color: COLOR.muted, lineHeight: 1.8 }}>
+              以上就是机会成本的本质：在另一方案中你能获得的这些好处，正是你选择当前方案时必须放弃的真实代价——你为这个决定所付出的隐性成本。
+            </div>
           </Card>
 
         </div>

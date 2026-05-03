@@ -248,35 +248,6 @@ export default function App() {
   var last    = chartData.length > 0 ? chartData[chartData.length - 1] : null;
   var buyWins = last ? last.rawB > last.rawR : false;
 
-  // For mode=diff: simulate same-area scenario (rent effBuyArea m²) to compare
-  var sameAreaLast = useMemo(function() {
-    if (mode !== "diff") return null;
-    var r0 = effBuyArea * rentPPM;
-    var loanBal = loan, propVal = price;
-    var port = outlay, invested = outlay;
-    var curFee = fee, curRent = r0;
-    for (var yr = 1; yr <= loanTerm; yr++) {
-      for (var mo = 0; mo < 12; mo++) {
-        var interest  = loanBal * (mRate / 100 / 12);
-        var principal = Math.min(mortgage - interest, loanBal);
-        loanBal  = Math.max(0, loanBal - principal);
-        var extra = mortgage + curFee - curRent;
-        port     = port * (1 + invRet / 100 / 12) + extra;
-        invested += Math.max(0, extra);
-      }
-      curFee  = curFee  * (1 + feeGrowth  / 100);
-      curRent = curRent * (1 + rentGrowth / 100);
-      propVal = propVal * (1 + propGrowth / 100);
-    }
-    var capGain = Math.max(0, propVal - price);
-    var capTax  = primaryRes ? 0 : capGain * 0.30;
-    var buyW    = propVal - loanBal - propVal * agentFee / 100 - capTax;
-    var invGain = Math.max(0, port - invested);
-    var rentW   = port - invGain * (invTax / 100);
-    return { rawB: buyW, rawR: rentW };
-  }, [mode, effBuyArea, rentPPM, loan, price, outlay, mRate, mortgage, loanTerm,
-      fee, feeGrowth, rentGrowth, invRet, propGrowth, agentFee, primaryRes, invTax]);
-
   var breakEvenRate = useMemo(function() {
     var lb0 = loan, pv0 = price, cf0 = fee, cr0 = rent0;
     for (var yr = 1; yr <= loanTerm; yr++) {
@@ -690,93 +661,7 @@ export default function App() {
             </ResponsiveContainer>
           </Card>
 
-          {/* ── Mode 2 切换分析 ── */}
-          {mode === "diff" && sameAreaLast && (
-            <Card p="20px" style={{ marginTop: 12 }}>
-              <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>切换方案分析</div>
-              <div style={{ fontSize: 12, color: COLOR.muted, marginBottom: 16, lineHeight: 1.6 }}>
-                对比：租住同等面积（{effBuyArea}m²）vs 租住当前面积（{effRentArea}m²），哪种更划算？
-              </div>
-
-              {/* 两方案对比 */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 14 }}>
-                <div style={{ background: "#F8F8FF", borderRadius: 14, padding: "14px" }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: COLOR.primary, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                    方案 A（同等面积）
-                  </div>
-                  <div style={{ fontSize: 11, color: COLOR.sub, marginBottom: 4 }}>买 {effBuyArea}m² / 租 {effBuyArea}m²</div>
-                  <div style={{ fontSize: 11, color: COLOR.sub, marginBottom: 4 }}>月租 <strong style={{ color: COLOR.text }}>{fmt(effBuyArea * rentPPM)}</strong></div>
-                  <div style={{ fontSize: 11, color: COLOR.sub, marginBottom: 8 }}>买卖差额 <strong style={{ color: COLOR.text }}>{fmt(Math.abs(buyMonthly - effBuyArea * rentPPM))}/月</strong>{" "}{buyMonthly > effBuyArea * rentPPM ? "（买贵）" : "（租贵）"}</div>
-                  <div style={{ borderTop: "1px solid " + COLOR.border, paddingTop: 8, marginTop: 4 }}>
-                    <div style={{ fontSize: 10, color: COLOR.muted, marginBottom: 3 }}>{loanTerm}年后净资产</div>
-                    <div style={{ fontSize: 14, fontWeight: 800, color: sameAreaLast.rawB > sameAreaLast.rawR ? COLOR.buy : COLOR.green }}>
-                      {sameAreaLast.rawB > sameAreaLast.rawR ? "买房" : "租房"}领先 {fmt(Math.abs(sameAreaLast.rawB - sameAreaLast.rawR))}
-                    </div>
-                  </div>
-                </div>
-                <div style={{ background: "#F4FCF8", borderRadius: 14, padding: "14px" }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: COLOR.green, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                    方案 B（当前不同面积）
-                  </div>
-                  <div style={{ fontSize: 11, color: COLOR.sub, marginBottom: 4 }}>买 {effBuyArea}m² / 租 {effRentArea}m²</div>
-                  <div style={{ fontSize: 11, color: COLOR.sub, marginBottom: 4 }}>月租 <strong style={{ color: COLOR.text }}>{fmt(rent0)}</strong></div>
-                  <div style={{ fontSize: 11, color: COLOR.sub, marginBottom: 8 }}>买卖差额 <strong style={{ color: COLOR.text }}>{fmt(Math.abs(saving))}/月</strong>{" "}{saving >= 0 ? "（买贵）" : "（租贵）"}</div>
-                  <div style={{ borderTop: "1px solid " + COLOR.border, paddingTop: 8, marginTop: 4 }}>
-                    <div style={{ fontSize: 10, color: COLOR.muted, marginBottom: 3 }}>{loanTerm}年后净资产</div>
-                    <div style={{ fontSize: 14, fontWeight: 800, color: buyWins ? COLOR.buy : COLOR.green }}>
-                      {buyWins ? "买房" : "租房"}领先 {fmt(last ? Math.abs(last.rawB - last.rawR) : 0)}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* 空间溢价分析 */}
-              <div style={{ background: COLOR.bg, borderRadius: 12, padding: "12px 14px", marginBottom: 10 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: COLOR.text, marginBottom: 6 }}>
-                  {areaDiff !== 0 ? Math.abs(areaDiff) + "m² 面积差的代价" : "面积完全相同"}
-                </div>
-                {areaDiff !== 0 && (
-                  <div style={{ fontSize: 12, color: COLOR.sub, lineHeight: 1.8 }}>
-                    {areaDiff > 0 ? (
-                      <>
-                        租房面积多 <strong>{areaDiff}m²</strong>，每月多支出 <strong style={{ color: COLOR.text }}>{fmt(areaDiff * rentPPM)}</strong>（{loanTerm}年累计多支出 <strong style={{ color: COLOR.text }}>{fmt(areaDiff * rentPPM * 12 * loanTerm)}</strong>）<br />
-                        换来的是每月住更宽敞的空间。{loanTerm}年后，租房方案净资产因此
-                        {(last ? last.rawR : 0) < sameAreaLast.rawR
-                          ? <strong style={{ color: COLOR.buy }}> 少 {fmt(Math.abs((last ? last.rawR : 0) - sameAreaLast.rawR))}</strong>
-                          : <strong style={{ color: COLOR.green }}> 多 {fmt(Math.abs((last ? last.rawR : 0) - sameAreaLast.rawR))}</strong>
-                        }。
-                      </>
-                    ) : (
-                      <>
-                        买房面积多 <strong>{-areaDiff}m²</strong>，租房每月少支出 <strong style={{ color: COLOR.text }}>{fmt(-areaDiff * rentPPM)}</strong>（节省更多可投资）。{loanTerm}年后，租房方案净资产因此
-                        {(last ? last.rawR : 0) > sameAreaLast.rawR
-                          ? <strong style={{ color: COLOR.green }}> 多 {fmt(Math.abs((last ? last.rawR : 0) - sameAreaLast.rawR))}</strong>
-                          : <strong style={{ color: COLOR.buy }}> 少 {fmt(Math.abs((last ? last.rawR : 0) - sameAreaLast.rawR))}</strong>
-                        }。
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* 建议 */}
-              <div style={{ background: buyWins === (sameAreaLast.rawB > sameAreaLast.rawR)
-                ? (buyWins ? "#EEF0FF" : "#EEF9F5")
-                : "#FFF8ED",
-                borderRadius: 12, padding: "12px 14px", fontSize: 12, lineHeight: 1.7 }}>
-                <strong style={{ color: COLOR.text }}>建议：</strong>
-                {" "}
-                {areaDiff === 0
-                  ? "两方案面积相同，结论与模式一一致。"
-                  : buyWins === (sameAreaLast.rawB > sameAreaLast.rawR)
-                    ? (buyWins
-                        ? "无论同等还是不同面积，买房净资产均领先。面积差异不改变结论，主要影响生活舒适度。"
-                        : "无论同等还是不同面积，租房净资产均领先。面积差异不改变结论，主要影响生活舒适度。")
-                    : "两种方案在同等/不同面积下结论相反，说明面积差异对结果有决定性影响。建议调整面积直到找到临界点，或重新考虑哪种居住空间更符合实际需求。"
-                }
-              </div>
-            </Card>
-          )}
+          {/* ── Mode 2 切换分析（已移除）── */}
 
           {/* ── 敏感性热力图 ── */}
           <Card p="20px" style={{ marginTop: 12 }}>
@@ -952,71 +837,65 @@ export default function App() {
             </div>
           </Card>
 
-          {/* ── 机会成本 ── */}
+          {/* ── 机会成本（财务 + 生活） ── */}
           <Card p="20px" style={{ marginTop: 12 }}>
-            <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 14 }}>机会成本</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>机会成本</div>
+            <div style={{ fontSize: 12, color: COLOR.muted, marginBottom: 16, lineHeight: 1.6 }}>
+              买房和租房的每个选择都意味着放弃另一种可能。以下从财务和生活两个维度，梳理你真正在放弃什么。
+            </div>
+
+            {/* 财务机会成本 */}
+            <div style={{ fontSize: 12, fontWeight: 700, color: COLOR.text, marginBottom: 10 }}>财务机会成本</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
               <div style={{ background: "#EEF0FF", borderRadius: 14, padding: "14px" }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.buy, marginBottom: 8 }}>买房放弃了什么</div>
-                <div style={{ fontSize: 12, color: COLOR.sub, lineHeight: 1.7 }}>
-                  首付等初始投入 <strong>{fmt(outlay)}</strong> 锁进房产。
-                  {saving >= 0 ? <>每月多付 <strong>{fmt(saving)}</strong> 无法复利增值。</> : <>每月反而节省 <strong>{fmt(-saving)}</strong>。</>}
-                  {loanTerm} 年内资金流动性极低。
+                <div style={{ fontSize: 12, color: COLOR.sub, lineHeight: 1.9 }}>
+                  · 首付 {fmt(down)} + 手续费 {fmt(txAmt + bankFees)} = <strong style={{ color: COLOR.text }}>{fmt(outlay)}</strong> 一次性锁进房产，无法自由流动<br />
+                  · 首年利息约 <strong style={{ color: COLOR.text }}>{fmt(Math.round(loan * mRate / 100 / 12))}/月</strong>，是真正的沉没成本，不形成权益<br />
+                  {saving >= 0
+                    ? <span>· 与租房相比每月多支出 <strong style={{ color: COLOR.text }}>{fmt(saving)}</strong>，{loanTerm}年累计多支出 <strong style={{ color: COLOR.text }}>{fmt(Math.round(saving * 12 * loanTerm))}</strong></span>
+                    : <span>· 与租房相比每月少支出 <strong style={{ color: COLOR.text }}>{fmt(-saving)}</strong>，现金流更宽松</span>
+                  }<br />
+                  · 资产 100% 集中于单一不动产，无法全球分散风险<br />
+                  · 卖房周期 3–6 个月，流动性极差，生活重大变化时选项受限
                 </div>
               </div>
               <div style={{ background: "#EEF9F5", borderRadius: 14, padding: "14px" }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.green, marginBottom: 8 }}>租房放弃了什么</div>
-                <div style={{ fontSize: 12, color: COLOR.sub, lineHeight: 1.7 }}>
-                  放弃持有每年涨 <strong>{propGrowth}%</strong> 的资产。
-                  {loanTerm} 年后房产预计市值 <strong>{fmt(last ? last.rawPV : 0)}</strong>。
-                  {saving < 0 && <>每月多支出 <strong>{fmt(-saving)}</strong>。</>}
-                </div>
-              </div>
-            </div>
-            <div style={{ background: COLOR.bg, borderRadius: 10, padding: "12px 14px", fontSize: 12, color: COLOR.sub, lineHeight: 1.7 }}>
-              <strong style={{ color: COLOR.text }}>综合结论：</strong>
-              {buyWins
-                ? " 当前参数下买房机会成本更低——房产升值（" + propGrowth + "%/年）弥补了资金锁定的损失。"
-                : " 当前参数下租房机会成本更低——资金投入市场（" + invRet + "%/年）比锁进房产更高效，" + loanTerm + " 年复利积累超越了房产增值。"
-              }
-            </div>
-          </Card>
-
-          {/* ── 强制储蓄效应 ── */}
-          <Card p="20px" style={{ marginTop: 12 }}>
-            <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 14 }}>强制储蓄效应</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
-              <div style={{ background: "#EEF0FF", borderRadius: 14, padding: "14px" }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.buy, marginBottom: 6 }}>买房：强制积累</div>
-                <div style={{ fontSize: 12, color: COLOR.sub, lineHeight: 1.7 }}>
-                  每月还月供相当于被动储蓄，执行率100%，不依赖自律。{loanTerm} 年后房产完全属于自己。
-                </div>
-              </div>
-              <div style={{ background: "#EEF9F5", borderRadius: 14, padding: "14px" }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.green, marginBottom: 6 }}>租房：主动投资</div>
-                <div style={{ fontSize: 12, color: COLOR.sub, lineHeight: 1.7 }}>
+                <div style={{ fontSize: 12, color: COLOR.sub, lineHeight: 1.9 }}>
+                  · 放弃持有每年涨 <strong style={{ color: COLOR.text }}>{propGrowth}%</strong> 的资产，{loanTerm}年后房产预计市值 <strong style={{ color: COLOR.text }}>{fmt(last ? last.rawPV : 0)}</strong><br />
+                  · 租金是纯消耗，{loanTerm}年累计支出 <strong style={{ color: COLOR.text }}>{fmt(last ? last.RentOut : 0)}</strong>，一分权益也不积累<br />
+                  · 放弃 {Math.round(100 / downPct)} 倍杠杆——首付 {fmt(down)} 控制 {fmt(price)} 的资产，房价每涨 1% 净资产增幅被放大<br />
                   {saving >= 0
-                    ? "需要主动把差额 " + fmt(saving) + "/月 投入理财，坚持 " + loanTerm + " 年，且市场暴跌时不卖出。"
-                    : "租房月支出更高（多 " + fmt(-saving) + "/月），需要更强的现金流管理能力。"
-                  }
+                    ? <span>· 需主动把节省的 <strong style={{ color: COLOR.text }}>{fmt(saving)}/月</strong> 纪律性投入理财，坚持 {loanTerm} 年不中断</span>
+                    : <span>· 月支出更高，须从收入中额外支出 <strong style={{ color: COLOR.text }}>{fmt(-saving)}/月</strong></span>
+                  }<br />
+                  · 若缺乏投资纪律或在市场暴跌时卖出，数学优势将大打折扣
                 </div>
               </div>
             </div>
-            <div style={{ background: "#FFF8ED", borderRadius: 10, padding: "10px 14px", fontSize: 12, color: "#78350F" }}>
-              ⚠️ 如果无法坚持投资纪律，租房方案的数学优势会大打折扣。买房的"强制储蓄"对缺乏投资习惯的人实际上更有效。
-            </div>
-          </Card>
 
-          {/* ── 居住体验对比 ── */}
-          <Card p="20px" style={{ marginTop: 12 }}>
-            <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 14 }}>居住体验对比</div>
+            <div style={{ background: COLOR.bg, borderRadius: 10, padding: "12px 14px", fontSize: 12, color: COLOR.sub, lineHeight: 1.7, marginBottom: 16 }}>
+              <strong style={{ color: COLOR.text }}>财务结论：</strong>
+              {buyWins
+                ? " 当前参数下买房机会成本更低——房产升值（" + propGrowth + "%/年）和杠杆效应共同弥补了资金锁定与交易成本的损失。"
+                : " 当前参数下租房机会成本更低——将首付投入市场（" + invRet + "%/年）、每月纪律性追投，" + loanTerm + " 年后复利积累超越了房产增值与杠杆带来的收益。"
+              }
+              {" "}保本收益率为 <strong style={{ color: invRet >= breakEvenRate ? COLOR.green : COLOR.buy }}>{breakEvenRate}%</strong>——租房方案年化收益率需超过此值，净资产才能追平买房。
+            </div>
+
+            {/* 生活机会成本 */}
+            <div style={{ fontSize: 12, fontWeight: 700, color: COLOR.text, marginBottom: 6, paddingTop: 14, borderTop: "1px solid " + COLOR.border }}>生活机会成本</div>
+            <div style={{ fontSize: 12, color: COLOR.muted, marginBottom: 14, lineHeight: 1.5 }}>
+              这些是财务模型无法量化、但同样真实的放弃——每种优势背后都藏着对应的代价。
+            </div>
             {[
-              ["稳定性", "永久居住权，不受房东约束，适合长期定居", "合同到期面临搬家或涨价风险", COLOR.buy],
-              ["流动性与自由度", "换城市需要卖房，周期数月，生活选择受约束", "随时离开，换城市换工作毫无包袱", COLOR.green],
-              ["个性化与归属感", "完全自主改造，真正的家，添置长期物品不心疼", "通常不能大幅改造，住别人设计的家", COLOR.buy],
-              ["财务弹性", "月供固定，失业或利率上涨时压力集中", "收入下降可换小房，月支出弹性大", COLOR.green],
-              ["维修与管理", "大修费用自担，突发问题需要时间精力处理", "联系房东省事，但掌控感低", COLOR.green],
-              ["邻里与社区", "长期定居有助于建立深度邻里关系", "搬家频率高，难以形成持续社区连接", COLOR.buy],
+              ["稳定性",      "永久居住权，不受房东约束，适合长期定居",           "合同到期面临搬家或涨价风险，居住稳定性依赖房东意愿",   COLOR.buy],
+              ["流动性与自由度","换城市需要卖房，周期数月，人生重大决策受到房产牵绊", "随时离开，换城市换工作毫无包袱，人生选项始终开放",   COLOR.green],
+              ["个性化与归属感","完全自主改造，真正的家，添置长期物品不心疼",        "通常不能大幅改造，在别人设计的空间里将就生活",        COLOR.buy],
+              ["财务弹性",    "月供固定，收入下降、失业或利率上涨时压力高度集中",  "收入下降可换小房降租，月支出具有主动调节空间",        COLOR.green],
+              ["维修与管理",  "大修费用自担，突发问题需自行投入时间和金钱处理",    "联系房东即可，省时省力，但掌控感和响应速度依赖房东",   COLOR.green],
+              ["邻里与社区",  "长期定居有助于建立深度邻里关系和归属感",           "搬家频率较高，难以形成持续稳定的社区连接",           COLOR.buy],
             ].map(function(row, idx) {
               var isLast = idx === 5;
               return (

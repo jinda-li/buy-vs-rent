@@ -491,6 +491,11 @@ export default function App() {
               : "🏠 当前模式：买房和租房面积可以不同。模拟真实市场中你实际面临的两个选项，财务结果包含了面积差带来的成本差异。"
             }
           </div>
+
+          {/* 核心假设说明 */}
+          <div style={{ marginTop: 8, padding: "10px 12px", borderRadius: 10, background: "#FFFBEB", border: "1px solid #FDE68A", fontSize: 11, color: "#92400E", lineHeight: 1.7 }}>
+            <span style={{ fontWeight: 700 }}>💡 租房方案的假设：</span>租房每月省下的差额（买房月支出 − 租金）会<strong>自动投入理财</strong>，年化收益 <strong>{invRet}%</strong>。最终对比的是「买房净资产」vs「租房 + 投资组合」到手金额。
+          </div>
         </div>
 
         {/* ── 月支出概览 ── */}

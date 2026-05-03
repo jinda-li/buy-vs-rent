@@ -2,30 +2,22 @@ import { useState, useMemo } from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 
 var CURRENCIES = {
-  CNY: { sym: "¥",    locale: "zh-CN", after: false, bankFees: 5000,
+  CNY: { sym: "¥",  locale: "zh-CN", after: false, bankFees: 5000,
     label: "人民币 CNY",
     d: { buyPPM: 25000, rentPPM: 80,  fee: 500 },
     r: { buyPPM: [3000, 150000, 1000], rentPPM: [20, 300, 5], fee: [100, 5000, 100] } },
-  EUR: { sym: "€",    locale: "fi-FI", after: true,  bankFees: 500,
+  EUR: { sym: "€",  locale: "fi-FI", after: true,  bankFees: 500,
     label: "欧元 EUR",
     d: { buyPPM: 3300,  rentPPM: 15,  fee: 270 },
     r: { buyPPM: [500, 20000, 100],   rentPPM: [3, 60, 0.5],  fee: [50, 2000, 10]  } },
-  USD: { sym: "$",    locale: "en-US", after: false, bankFees: 3000,
+  USD: { sym: "$",  locale: "en-US", after: false, bankFees: 3000,
     label: "美元 USD",
     d: { buyPPM: 5000,  rentPPM: 25,  fee: 400 },
     r: { buyPPM: [500, 25000, 100],   rentPPM: [5, 100, 1],   fee: [100, 2000, 50] } },
-  GBP: { sym: "£",    locale: "en-GB", after: false, bankFees: 2000,
+  GBP: { sym: "£",  locale: "en-GB", after: false, bankFees: 2000,
     label: "英镑 GBP",
     d: { buyPPM: 7000,  rentPPM: 30,  fee: 300 },
     r: { buyPPM: [1000, 30000, 200],  rentPPM: [5, 100, 1],   fee: [50, 2000, 50]  } },
-  HKD: { sym: "HK$",  locale: "zh-HK", after: false, bankFees: 20000,
-    label: "港元 HKD",
-    d: { buyPPM: 120000, rentPPM: 350, fee: 2000 },
-    r: { buyPPM: [30000, 350000, 5000], rentPPM: [80, 1000, 10], fee: [500, 10000, 200] } },
-  SGD: { sym: "S$",   locale: "en-SG", after: false, bankFees: 8000,
-    label: "新加坡元 SGD",
-    d: { buyPPM: 15000, rentPPM: 50,  fee: 600 },
-    r: { buyPPM: [3000, 60000, 500],  rentPPM: [10, 150, 5],  fee: [200, 3000, 100] } },
 };
 
 var COLOR = {
@@ -120,10 +112,10 @@ function ChartTip(props) {
 }
 
 var INV_RANGE  = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-var RENT_RANGE = [8, 10, 12, 14, 16, 18, 20];
 
 export default function App() {
   var sc  = useState("CNY");  var currency    = sc[0];  var setCurrency   = sc[1];
+  var sm  = useState("same"); var mode        = sm[0];  var setMode       = sm[1];
   var cur = CURRENCIES[currency];
 
   function fmtN(n) { return Math.abs(Math.round(n)).toLocaleString(cur.locale); }
@@ -159,13 +151,18 @@ export default function App() {
   var s15 = useState(20);            var invTax     = s15[0]; var setInvTax     = s15[1];
   var s16 = useState("net");         var tab        = s16[0]; var setTab        = s16[1];
   var s17 = useState(false);         var moreOpen   = s17[0]; var setMoreOpen   = s17[1];
+  var s18 = useState(60);            var buyArea    = s18[0]; var setBuyArea    = s18[1];
+  var s19 = useState(80);            var rentArea   = s19[0]; var setRentArea   = s19[1];
 
-  var price    = buyPPM * area;
+  var effBuyArea  = mode === "same" ? area : buyArea;
+  var effRentArea = mode === "same" ? area : rentArea;
+
+  var price    = buyPPM * effBuyArea;
   var down     = price * downPct / 100;
   var loan     = price - down;
   var txAmt    = price * txTax / 100;
   var outlay   = down + txAmt + bankFees;
-  var rent0    = area * rentPPM;
+  var rent0    = effRentArea * rentPPM;
 
   var mortgage = useMemo(function() {
     var r = mRate / 100 / 12;
@@ -175,7 +172,7 @@ export default function App() {
   }, [mRate, loan, loanTerm]);
 
   var buyMonthly = mortgage + fee;
-  var saving     = Math.max(0, buyMonthly - rent0);
+  var saving     = buyMonthly - rent0;
 
   var chartData = useMemo(function() {
     var loanBal = loan, propVal = price;
@@ -188,10 +185,10 @@ export default function App() {
         var interest  = loanBal * (mRate / 100 / 12);
         var principal = Math.min(mortgage - interest, loanBal);
         loanBal  = Math.max(0, loanBal - principal);
-        var extra = Math.max(0, mortgage + curFee - curRent);
+        var extra = mortgage + curFee - curRent;
         buyOut  += mortgage + curFee;
         port     = port * (1 + invRet / 100 / 12) + extra;
-        invested += extra;
+        invested += Math.max(0, extra);
         rentOut += curRent;
       }
       curFee  = curFee  * (1 + feeGrowth  / 100);
@@ -219,6 +216,35 @@ export default function App() {
   var last    = chartData.length > 0 ? chartData[chartData.length - 1] : null;
   var buyWins = last ? last.rawB > last.rawR : false;
 
+  // For mode=diff: simulate same-area scenario (rent effBuyArea m²) to compare
+  var sameAreaLast = useMemo(function() {
+    if (mode !== "diff") return null;
+    var r0 = effBuyArea * rentPPM;
+    var loanBal = loan, propVal = price;
+    var port = outlay, invested = outlay;
+    var curFee = fee, curRent = r0;
+    for (var yr = 1; yr <= loanTerm; yr++) {
+      for (var mo = 0; mo < 12; mo++) {
+        var interest  = loanBal * (mRate / 100 / 12);
+        var principal = Math.min(mortgage - interest, loanBal);
+        loanBal  = Math.max(0, loanBal - principal);
+        var extra = mortgage + curFee - curRent;
+        port     = port * (1 + invRet / 100 / 12) + extra;
+        invested += Math.max(0, extra);
+      }
+      curFee  = curFee  * (1 + feeGrowth  / 100);
+      curRent = curRent * (1 + rentGrowth / 100);
+      propVal = propVal * (1 + propGrowth / 100);
+    }
+    var capGain = Math.max(0, propVal - price);
+    var capTax  = primaryRes ? 0 : capGain * 0.30;
+    var buyW    = propVal - loanBal - propVal * agentFee / 100 - capTax;
+    var invGain = Math.max(0, port - invested);
+    var rentW   = port - invGain * (invTax / 100);
+    return { rawB: buyW, rawR: rentW };
+  }, [mode, effBuyArea, rentPPM, loan, price, outlay, mRate, mortgage, loanTerm,
+      fee, feeGrowth, rentGrowth, invRet, propGrowth, agentFee, primaryRes, invTax]);
+
   var breakEvenRate = useMemo(function() {
     var lb0 = loan, pv0 = price, cf0 = fee, cr0 = rent0;
     for (var yr = 1; yr <= loanTerm; yr++) {
@@ -233,7 +259,6 @@ export default function App() {
     var cg0 = Math.max(0, pv0 - price);
     var ct0 = primaryRes ? 0 : cg0 * 0.30;
     var targetBuy = pv0 - lb0 - pv0 * agentFee / 100 - ct0;
-
     var calc = function(rate) {
       var port2 = outlay, inv2 = outlay, lb2 = loan;
       var cf2 = fee, cr2 = rent0;
@@ -241,9 +266,9 @@ export default function App() {
         for (var mo2 = 0; mo2 < 12; mo2++) {
           var int2 = lb2 * (mRate / 100 / 12);
           lb2 = Math.max(0, lb2 - Math.min(mortgage - int2, lb2));
-          var ext2 = Math.max(0, mortgage + cf2 - cr2);
+          var ext2 = mortgage + cf2 - cr2;
           port2 = port2 * (1 + rate / 100 / 12) + ext2;
-          inv2 += ext2;
+          inv2 += Math.max(0, ext2);
         }
         cf2 = cf2 * (1 + feeGrowth / 100);
         cr2 = cr2 * (1 + rentGrowth / 100);
@@ -271,15 +296,7 @@ export default function App() {
 
   var heatmapRentRange = useMemo(function() {
     var base = cur.d.rentPPM;
-    return [
-      Math.round(base * 0.5),
-      Math.round(base * 0.65),
-      Math.round(base * 0.8),
-      Math.round(base * 0.95),
-      Math.round(base * 1.1),
-      Math.round(base * 1.25),
-      Math.round(base * 1.4),
-    ];
+    return [0.5, 0.65, 0.8, 0.95, 1.1, 1.25, 1.4].map(function(f) { return Math.round(base * f); });
   }, [currency, cur.d.rentPPM]);
 
   var heatmap = useMemo(function() {
@@ -290,14 +307,14 @@ export default function App() {
         var ir = INV_RANGE[ii];
         var rp = heatmapRentRange[ri];
         var lb = loan, pv = price, port2 = outlay, inv2 = outlay;
-        var cf = fee, cr = rp * area;
+        var cf = fee, cr = rp * effRentArea;
         for (var yr2 = 1; yr2 <= loanTerm; yr2++) {
           for (var mo2 = 0; mo2 < 12; mo2++) {
             var int2 = lb * (mRate / 100 / 12);
             lb = Math.max(0, lb - Math.min(mortgage - int2, lb));
-            var ext2 = Math.max(0, mortgage + cf - cr);
+            var ext2 = mortgage + cf - cr;
             port2 = port2 * (1 + ir / 100 / 12) + ext2;
-            inv2 += ext2;
+            inv2 += Math.max(0, ext2);
           }
           cf = cf * (1 + feeGrowth / 100);
           cr = cr * (1 + rentGrowth / 100);
@@ -314,7 +331,7 @@ export default function App() {
     }
     return cells;
   }, [price, loan, outlay, mRate, mortgage, loanTerm, propGrowth, rentGrowth,
-      area, fee, feeGrowth, agentFee, primaryRes, invTax, heatmapRentRange]);
+      effRentArea, fee, feeGrowth, agentFee, primaryRes, invTax, heatmapRentRange]);
 
   function applyPreset(c) {
     var p = CURRENCIES[c];
@@ -323,7 +340,8 @@ export default function App() {
   }
 
   function doReset() {
-    setArea(60); setBuyPPM(cur.d.buyPPM); setFee(cur.d.fee); setRentPPM(cur.d.rentPPM); setInvRet(3.0);
+    setArea(60); setBuyArea(60); setRentArea(80);
+    setBuyPPM(cur.d.buyPPM); setFee(cur.d.fee); setRentPPM(cur.d.rentPPM); setInvRet(3.0);
     setPropGrowth(1.5); setMRate(2.8); setDownPct(20); setLoanTerm(25);
     setRentGrowth(1.3); setFeeGrowth(2.3); setTxTax(1.5); setAgentFee(3.5);
     setPrimaryRes(true); setInvTax(20); setMoreOpen(false);
@@ -333,30 +351,34 @@ export default function App() {
     ? (buyWins ? "买房领先" : "租房领先")
     : crossings.length === 1
       ? "第" + crossings[0].yr + "年" + (crossings[0].dir === "buy" ? "买房" : "租房") + "超越"
-      : "第" + crossings[0].yr + "年" + (crossings[0].dir === "buy" ? "买房" : "租房") + "超越，第" + crossings[1].yr + "年" + (crossings[1].dir === "buy" ? "买房" : "租房") + "再度超越";
+      : "第" + crossings[0].yr + "年" + (crossings[0].dir === "buy" ? "买房" : "租房") + "超越，第" + crossings[1].yr + "年再度超越";
+
+  var areaDiff = effRentArea - effBuyArea;
 
   return (
     <div style={{ minHeight: "100vh", background: COLOR.bg, fontFamily: "system-ui, sans-serif", color: COLOR.text }}>
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 0 40px" }}>
 
+        {/* ── Header ── */}
         <div style={{ padding: "32px 20px 0" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <div>
               <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.primary, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>FINANCIAL CALCULATOR</div>
               <h1 style={{ fontSize: 28, fontWeight: 800, color: COLOR.text, margin: "0 0 4px", letterSpacing: "-0.5px" }}>买房 vs 租房</h1>
-              <div style={{ fontSize: 13, color: COLOR.muted }}>贷款年限 {loanTerm} 年 · 同等面积对比</div>
+              <div style={{ fontSize: 13, color: COLOR.muted }}>贷款年限 {loanTerm} 年 · {mode === "same" ? "同等面积对比" : "不同面积对比"}</div>
             </div>
             <button onClick={doReset} style={{ marginTop: 8, padding: "8px 14px", borderRadius: 12, border: "1.5px solid " + COLOR.border, background: "white", color: COLOR.muted, fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}>
               全部重置
             </button>
           </div>
 
-          <div style={{ display: "flex", gap: 6, marginTop: 14, flexWrap: "wrap" }}>
+          {/* 货币选择 */}
+          <div style={{ display: "flex", gap: 6, marginTop: 14 }}>
             {Object.keys(CURRENCIES).map(function(key) {
               var active = currency === key;
               return (
                 <button key={key} onClick={function() { applyPreset(key); }}
-                  style={{ padding: "5px 10px", borderRadius: 20, border: "1.5px solid", cursor: "pointer", fontSize: 11, fontWeight: 600,
+                  style={{ padding: "5px 12px", borderRadius: 20, border: "1.5px solid", cursor: "pointer", fontSize: 11, fontWeight: 600,
                     borderColor: active ? COLOR.primary : COLOR.border,
                     background: active ? "#EEF0FF" : "white",
                     color: active ? COLOR.primary : COLOR.muted }}>
@@ -365,60 +387,124 @@ export default function App() {
               );
             })}
           </div>
+
+          {/* 模式选择 */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 10 }}>
+            {[
+              ["same", "同等面积", "买卖双方面积相同，比较机会成本"],
+              ["diff", "不同面积", "自定义买房/租房面积，比较差异划算性"],
+            ].map(function(item) {
+              var active = mode === item[0];
+              return (
+                <button key={item[0]} onClick={function() { setMode(item[0]); }}
+                  style={{ padding: "10px 12px", borderRadius: 14, border: "2px solid", cursor: "pointer", textAlign: "left",
+                    borderColor: active ? COLOR.primary : COLOR.border,
+                    background: active ? "#EEF0FF" : "white" }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: active ? COLOR.primary : COLOR.text, marginBottom: 3 }}>{item[1]}</div>
+                  <div style={{ fontSize: 10, color: COLOR.muted, lineHeight: 1.4 }}>{item[2]}</div>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, padding: "20px 20px 0" }}>
+        {/* ── 月支出概览 ── */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, padding: "16px 20px 0" }}>
           <div style={{ background: COLOR.buy, borderRadius: 18, padding: "16px", color: "white" }}>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", opacity: 0.7, marginBottom: 4 }}>买房月支出（首年）</div>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", opacity: 0.7, marginBottom: 4 }}>
+              买房月支出（首年）{mode === "diff" ? " · " + effBuyArea + "m²" : ""}
+            </div>
             <div style={{ fontSize: 18, fontWeight: 800, fontFamily: "monospace" }}>{fmt(buyMonthly)}</div>
             <div style={{ fontSize: 11, opacity: 0.65, marginTop: 4 }}>月供 {fmt(mortgage)} + 物业 {fmt(fee)}</div>
           </div>
           <div style={{ background: COLOR.green, borderRadius: 18, padding: "16px", color: "white" }}>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", opacity: 0.7, marginBottom: 4 }}>租房月支出（首年）</div>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", opacity: 0.7, marginBottom: 4 }}>
+              租房月支出（首年）{mode === "diff" ? " · " + effRentArea + "m²" : ""}
+            </div>
             <div style={{ fontSize: 18, fontWeight: 800, fontFamily: "monospace" }}>{fmt(rent0)}</div>
-            <div style={{ fontSize: 11, opacity: 0.65, marginTop: 4 }}>差额 {fmt(saving)} 可投资</div>
+            <div style={{ fontSize: 11, opacity: 0.65, marginTop: 4 }}>
+              {saving >= 0 ? "差额 " + fmt(saving) + " 可投资" : "租房多支出 " + fmt(-saving) + "/月"}
+            </div>
           </div>
         </div>
 
         <div style={{ padding: "20px 20px 0" }}>
 
-          <Card>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <span style={{ fontSize: 15, fontWeight: 700 }}>居住面积</span>
-              <span style={{ fontSize: 20, fontWeight: 800, color: COLOR.primary }}>{area} 平米</span>
-            </div>
-            <div style={{ position: "relative", height: 6, borderRadius: 99, background: "#E8E8EC" }}>
-              <div style={{ position: "absolute", left: 0, top: 0, height: "100%", borderRadius: 99, background: COLOR.primary, width: ((area - 20) / 130 * 100) + "%" }} />
-              <input type="range" min={20} max={150} step={1} value={area}
-                onChange={function(e) { setArea(+e.target.value); }}
-                style={{ position: "absolute", top: "50%", transform: "translateY(-50%)", width: "100%", opacity: 0, cursor: "pointer", height: 24, margin: 0 }} />
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 3 }}>
-              <span style={{ fontSize: 10, color: "#B0B4BE" }}>20 平米</span>
-              <span style={{ fontSize: 10, color: "#B0B4BE" }}>150 平米</span>
-            </div>
-            <div style={{ fontSize: 12, color: COLOR.muted, marginTop: 10, paddingTop: 10, borderTop: "1px solid " + COLOR.border }}>
-              买房总价 = {fmtSym(buyPPM)} × {area} = <strong style={{ color: COLOR.text }}>{fmt(price)}</strong>
-            </div>
-          </Card>
+          {/* ── 面积设置 ── */}
+          {mode === "same" ? (
+            <Card>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <span style={{ fontSize: 15, fontWeight: 700 }}>居住面积</span>
+                <span style={{ fontSize: 20, fontWeight: 800, color: COLOR.primary }}>{area} 平米</span>
+              </div>
+              <div style={{ position: "relative", height: 6, borderRadius: 99, background: "#E8E8EC" }}>
+                <div style={{ position: "absolute", left: 0, top: 0, height: "100%", borderRadius: 99, background: COLOR.primary, width: ((area - 20) / 130 * 100) + "%" }} />
+                <input type="range" min={20} max={150} step={1} value={area}
+                  onChange={function(e) { setArea(+e.target.value); }}
+                  style={{ position: "absolute", top: "50%", transform: "translateY(-50%)", width: "100%", opacity: 0, cursor: "pointer", height: 24, margin: 0 }} />
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 3 }}>
+                <span style={{ fontSize: 10, color: "#B0B4BE" }}>20 平米</span>
+                <span style={{ fontSize: 10, color: "#B0B4BE" }}>150 平米</span>
+              </div>
+              <div style={{ fontSize: 12, color: COLOR.muted, marginTop: 10, paddingTop: 10, borderTop: "1px solid " + COLOR.border }}>
+                买房总价 = {fmtSym(buyPPM)} × {area} = <strong style={{ color: COLOR.text }}>{fmt(price)}</strong>
+              </div>
+            </Card>
+          ) : (
+            <Card>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+                <span style={{ fontSize: 15, fontWeight: 700 }}>面积设置</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: areaDiff > 0 ? COLOR.green : areaDiff < 0 ? COLOR.buy : COLOR.muted,
+                  background: areaDiff > 0 ? "#EEF9F5" : areaDiff < 0 ? "#EEF0FF" : COLOR.bg,
+                  padding: "3px 10px", borderRadius: 999 }}>
+                  {areaDiff > 0 ? "租房多 +" + areaDiff : areaDiff < 0 ? "买房多 +" + (-areaDiff) : "面积相同"} m²
+                </span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.buy, marginBottom: 8 }}>买房面积</div>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: COLOR.buy, marginBottom: 8 }}>{buyArea} m²</div>
+                  <div style={{ position: "relative", height: 6, borderRadius: 99, background: "#E8E8EC", marginBottom: 4 }}>
+                    <div style={{ position: "absolute", left: 0, top: 0, height: "100%", borderRadius: 99, background: COLOR.buy, width: ((buyArea - 20) / 130 * 100) + "%" }} />
+                    <input type="range" min={20} max={150} step={1} value={buyArea}
+                      onChange={function(e) { setBuyArea(+e.target.value); }}
+                      style={{ position: "absolute", top: "50%", transform: "translateY(-50%)", width: "100%", opacity: 0, cursor: "pointer", height: 24, margin: 0 }} />
+                  </div>
+                  <div style={{ fontSize: 11, color: COLOR.muted }}>总价 {fmt(price)}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.green, marginBottom: 8 }}>租房面积</div>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: COLOR.green, marginBottom: 8 }}>{rentArea} m²</div>
+                  <div style={{ position: "relative", height: 6, borderRadius: 99, background: "#E8E8EC", marginBottom: 4 }}>
+                    <div style={{ position: "absolute", left: 0, top: 0, height: "100%", borderRadius: 99, background: COLOR.green, width: ((rentArea - 20) / 130 * 100) + "%" }} />
+                    <input type="range" min={20} max={150} step={1} value={rentArea}
+                      onChange={function(e) { setRentArea(+e.target.value); }}
+                      style={{ position: "absolute", top: "50%", transform: "translateY(-50%)", width: "100%", opacity: 0, cursor: "pointer", height: 24, margin: 0 }} />
+                  </div>
+                  <div style={{ fontSize: 11, color: COLOR.muted }}>月租 {fmt(rent0)}</div>
+                </div>
+              </div>
+            </Card>
+          )}
 
+          {/* ── 买房/租房参数 ── */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <Card p="18px" mb={0}>
               <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.buy, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 12 }}>买房</div>
               <SliderField label="购买单价" value={buyPPM}
                 min={cur.r.buyPPM[0]} max={cur.r.buyPPM[1]} step={cur.r.buyPPM[2]}
-                onChange={setBuyPPM} display={fmtSym(buyPPM) + "/平米"}
-                color={COLOR.buy} sub={"参考均价 " + fmtSym(cur.d.buyPPM) + "/平米"} />
+                onChange={setBuyPPM} display={fmtSym(buyPPM) + "/m²"}
+                color={COLOR.buy} sub={"参考均价 " + fmtSym(cur.d.buyPPM) + "/m²"} />
               <div style={{ marginBottom: 18 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
                   <div style={{ display: "flex", alignItems: "center" }}>
-                    <Label>买房额外月支出</Label>
+                    <Label>额外月支出</Label>
                     <InfoTip>
                       <div style={{ fontWeight: 700, marginBottom: 4 }}>相比租房多出来的固定开支</div>
                       <div>· 物业管理费 + 维修基金</div>
                       <div>· 房屋保险（买房后更贵）</div>
                       <div>· 水费（租房通常含在租金里）</div>
-                      <div>· 网费、垃圾费等自付费用</div>
                       <div style={{ marginTop: 6, color: "#94a3b8", fontSize: 10 }}>
                         这些费用租房时由房东承担<br />或已包含在租金中
                       </div>
@@ -426,7 +512,7 @@ export default function App() {
                   </div>
                   <span style={{ fontSize: 16, fontWeight: 700, color: COLOR.buy }}>{fmt(fee) + "/月"}</span>
                 </div>
-                <div style={{ fontSize: 11, color: COLOR.muted, marginBottom: 6 }}>含物业管理、维修基金、保险、水费等</div>
+                <div style={{ fontSize: 11, color: COLOR.muted, marginBottom: 6 }}>含物业管理、维修基金、保险等</div>
                 <div style={{ position: "relative", height: 6, borderRadius: 99, background: "#E8E8EC" }}>
                   <div style={{ position: "absolute", left: 0, top: 0, height: "100%", borderRadius: 99, background: COLOR.buy, width: ((fee - cur.r.fee[0]) / (cur.r.fee[1] - cur.r.fee[0]) * 100) + "%" }} />
                   <input type="range" min={cur.r.fee[0]} max={cur.r.fee[1]} step={cur.r.fee[2]} value={fee}
@@ -444,7 +530,7 @@ export default function App() {
               <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.green, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 12 }}>租房</div>
               <SliderField label="租金单价" value={rentPPM}
                 min={cur.r.rentPPM[0]} max={cur.r.rentPPM[1]} step={cur.r.rentPPM[2]}
-                onChange={setRentPPM} display={fmtSym(rentPPM) + "/平米"}
+                onChange={setRentPPM} display={fmtSym(rentPPM) + "/m²"}
                 color={COLOR.green} sub={"月租 " + fmt(rent0)} />
               <SliderField label="投资收益率" value={invRet} min={1} max={10} step={0.5}
                 onChange={setInvRet} display={invRet + "% / 年"}
@@ -461,6 +547,7 @@ export default function App() {
             </Card>
           </div>
 
+          {/* ── 更多设置 ── */}
           <div style={{ marginTop: 12 }}>
             <button onClick={function() { setMoreOpen(!moreOpen); }} style={{ width: "100%", padding: "14px 20px", borderRadius: 16, border: "none", background: COLOR.card, cursor: "pointer", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <span style={{ fontSize: 14, fontWeight: 600, color: COLOR.text }}>更多设置</span>
@@ -471,12 +558,12 @@ export default function App() {
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 20px" }}>
                   <div>
                     <div style={{ fontSize: 12, fontWeight: 700, color: COLOR.buy, marginBottom: 14 }}>买房参数</div>
-                    <SliderField label="贷款利率" value={mRate} min={1} max={7} step={0.1} onChange={setMRate} display={mRate + "%"} color={COLOR.buy} sub="当地银行贷款参考利率" />
+                    <SliderField label="贷款利率" value={mRate} min={1} max={7} step={0.1} onChange={setMRate} display={mRate + "%"} color={COLOR.buy} sub="当地银行参考利率" />
                     <SliderField label="首付比例" value={downPct} min={5} max={50} step={5} onChange={setDownPct} display={downPct + "%"} color={COLOR.buy} sub={"= " + fmt(down)} />
                     <SliderField label="贷款年限" value={loanTerm} min={5} max={30} step={1} onChange={setLoanTerm} display={loanTerm + " 年"} color={COLOR.buy} />
                     <SliderField label="房价年涨幅" value={propGrowth} min={-2} max={6} step={0.5} onChange={setPropGrowth} display={propGrowth + "%"} color={COLOR.buy} sub="历史均值参考" />
                     <SliderField label="过户税/契税" value={txTax} min={0} max={5} step={0.5} onChange={setTxTax} display={txTax + "%"} color={COLOR.buy} sub={"= " + fmt(txAmt)} />
-                    <SliderField label="卖房中介费" value={agentFee} min={0} max={6} step={0.5} onChange={setAgentFee} display={agentFee + "%"} color={COLOR.buy} sub="当地市场参考值" />
+                    <SliderField label="卖房中介费" value={agentFee} min={0} max={6} step={0.5} onChange={setAgentFee} display={agentFee + "%"} color={COLOR.buy} sub="当地市场参考" />
                     <SliderField label="物业费涨幅" value={feeGrowth} min={0} max={5} step={0.5} onChange={setFeeGrowth} display={feeGrowth + "%"} color={COLOR.buy} sub="历史均值参考" />
                     <div style={{ marginBottom: 14 }}>
                       <Label>卖房资本利得税</Label>
@@ -497,7 +584,7 @@ export default function App() {
                     <SliderField label="租金年增幅" value={rentGrowth} min={0} max={5} step={0.1} onChange={setRentGrowth} display={rentGrowth + "%"} color={COLOR.green} sub="历史参考约1-2%/年" />
                     <div style={{ marginBottom: 14 }}>
                       <Label>投资资本利得税</Label>
-                      <div style={{ fontSize: 11, color: COLOR.muted, marginBottom: 8 }}>各地税率不同，请按实际填写</div>
+                      <div style={{ fontSize: 11, color: COLOR.muted, marginBottom: 8 }}>各地税率不同，按实际填写</div>
                       <div style={{ display: "flex", gap: 6 }}>
                         {[[20,"20%"],[30,"30%"],[0,"免税"]].map(function(item) {
                           return (
@@ -514,6 +601,7 @@ export default function App() {
             )}
           </div>
 
+          {/* ── 净资产走势图 ── */}
           <Card mb={0} p="20px" style={{ marginTop: 12 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
               <span style={{ fontSize: 15, fontWeight: 700 }}>净资产走势</span>
@@ -552,19 +640,108 @@ export default function App() {
                       label={{ value: "第" + cx.yr + "年", fill: lc, fontSize: 10, position: idx % 2 === 0 ? "insideTopRight" : "insideBottomRight" }} />
                   );
                 })}
-                {tab === "net" && <Area type="monotone" dataKey="BuyNet" name="买房净资产" stroke={COLOR.buy} strokeWidth={2.5} fill="url(#gBuy)" dot={false} activeDot={{ r: 5, fill: COLOR.buy }} />}
-                {tab === "net" && <Area type="monotone" dataKey="RentNet" name="租房投资组合" stroke={COLOR.green} strokeWidth={2.5} fill="url(#gRent)" dot={false} activeDot={{ r: 5, fill: COLOR.green }} />}
+                {tab === "net" && <Area type="monotone" dataKey="BuyNet" name={"买房净资产" + (mode === "diff" ? "(" + effBuyArea + "m²)" : "")} stroke={COLOR.buy} strokeWidth={2.5} fill="url(#gBuy)" dot={false} activeDot={{ r: 5, fill: COLOR.buy }} />}
+                {tab === "net" && <Area type="monotone" dataKey="RentNet" name={"租房投资组合" + (mode === "diff" ? "(" + effRentArea + "m²)" : "")} stroke={COLOR.green} strokeWidth={2.5} fill="url(#gRent)" dot={false} activeDot={{ r: 5, fill: COLOR.green }} />}
                 {tab === "cost" && <Area type="monotone" dataKey="BuyOut" name="买房累计支出" stroke={COLOR.buy} strokeWidth={2.5} fill="url(#gBuy)" dot={false} />}
                 {tab === "cost" && <Area type="monotone" dataKey="RentOut" name="租房累计支出" stroke={COLOR.green} strokeWidth={2.5} fill="url(#gRent)" dot={false} />}
               </AreaChart>
             </ResponsiveContainer>
           </Card>
 
+          {/* ── Mode 2 切换分析 ── */}
+          {mode === "diff" && sameAreaLast && (
+            <Card p="20px" style={{ marginTop: 12 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>切换方案分析</div>
+              <div style={{ fontSize: 12, color: COLOR.muted, marginBottom: 16, lineHeight: 1.6 }}>
+                对比：租住同等面积（{effBuyArea}m²）vs 租住当前面积（{effRentArea}m²），哪种更划算？
+              </div>
+
+              {/* 两方案对比 */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 14 }}>
+                <div style={{ background: "#F8F8FF", borderRadius: 14, padding: "14px" }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: COLOR.primary, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                    方案 A（同等面积）
+                  </div>
+                  <div style={{ fontSize: 11, color: COLOR.sub, marginBottom: 4 }}>买 {effBuyArea}m² / 租 {effBuyArea}m²</div>
+                  <div style={{ fontSize: 11, color: COLOR.sub, marginBottom: 4 }}>月租 <strong style={{ color: COLOR.text }}>{fmt(effBuyArea * rentPPM)}</strong></div>
+                  <div style={{ fontSize: 11, color: COLOR.sub, marginBottom: 8 }}>买卖差额 <strong style={{ color: COLOR.text }}>{fmt(Math.abs(buyMonthly - effBuyArea * rentPPM))}/月</strong>{" "}{buyMonthly > effBuyArea * rentPPM ? "（买贵）" : "（租贵）"}</div>
+                  <div style={{ borderTop: "1px solid " + COLOR.border, paddingTop: 8, marginTop: 4 }}>
+                    <div style={{ fontSize: 10, color: COLOR.muted, marginBottom: 3 }}>{loanTerm}年后净资产</div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: sameAreaLast.rawB > sameAreaLast.rawR ? COLOR.buy : COLOR.green }}>
+                      {sameAreaLast.rawB > sameAreaLast.rawR ? "买房" : "租房"}领先 {fmt(Math.abs(sameAreaLast.rawB - sameAreaLast.rawR))}
+                    </div>
+                  </div>
+                </div>
+                <div style={{ background: "#F4FCF8", borderRadius: 14, padding: "14px" }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: COLOR.green, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                    方案 B（当前不同面积）
+                  </div>
+                  <div style={{ fontSize: 11, color: COLOR.sub, marginBottom: 4 }}>买 {effBuyArea}m² / 租 {effRentArea}m²</div>
+                  <div style={{ fontSize: 11, color: COLOR.sub, marginBottom: 4 }}>月租 <strong style={{ color: COLOR.text }}>{fmt(rent0)}</strong></div>
+                  <div style={{ fontSize: 11, color: COLOR.sub, marginBottom: 8 }}>买卖差额 <strong style={{ color: COLOR.text }}>{fmt(Math.abs(saving))}/月</strong>{" "}{saving >= 0 ? "（买贵）" : "（租贵）"}</div>
+                  <div style={{ borderTop: "1px solid " + COLOR.border, paddingTop: 8, marginTop: 4 }}>
+                    <div style={{ fontSize: 10, color: COLOR.muted, marginBottom: 3 }}>{loanTerm}年后净资产</div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: buyWins ? COLOR.buy : COLOR.green }}>
+                      {buyWins ? "买房" : "租房"}领先 {fmt(last ? Math.abs(last.rawB - last.rawR) : 0)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 空间溢价分析 */}
+              <div style={{ background: COLOR.bg, borderRadius: 12, padding: "12px 14px", marginBottom: 10 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: COLOR.text, marginBottom: 6 }}>
+                  {areaDiff !== 0 ? Math.abs(areaDiff) + "m² 面积差的代价" : "面积完全相同"}
+                </div>
+                {areaDiff !== 0 && (
+                  <div style={{ fontSize: 12, color: COLOR.sub, lineHeight: 1.8 }}>
+                    {areaDiff > 0 ? (
+                      <>
+                        租房面积多 <strong>{areaDiff}m²</strong>，每月多支出 <strong style={{ color: COLOR.text }}>{fmt(areaDiff * rentPPM)}</strong>（{loanTerm}年累计多支出 <strong style={{ color: COLOR.text }}>{fmt(areaDiff * rentPPM * 12 * loanTerm)}</strong>）<br />
+                        换来的是每月住更宽敞的空间。{loanTerm}年后，租房方案净资产因此
+                        {(last ? last.rawR : 0) < sameAreaLast.rawR
+                          ? <strong style={{ color: COLOR.buy }}> 少 {fmt(Math.abs((last ? last.rawR : 0) - sameAreaLast.rawR))}</strong>
+                          : <strong style={{ color: COLOR.green }}> 多 {fmt(Math.abs((last ? last.rawR : 0) - sameAreaLast.rawR))}</strong>
+                        }。
+                      </>
+                    ) : (
+                      <>
+                        买房面积多 <strong>{-areaDiff}m²</strong>，租房每月少支出 <strong style={{ color: COLOR.text }}>{fmt(-areaDiff * rentPPM)}</strong>（节省更多可投资）。{loanTerm}年后，租房方案净资产因此
+                        {(last ? last.rawR : 0) > sameAreaLast.rawR
+                          ? <strong style={{ color: COLOR.green }}> 多 {fmt(Math.abs((last ? last.rawR : 0) - sameAreaLast.rawR))}</strong>
+                          : <strong style={{ color: COLOR.buy }}> 少 {fmt(Math.abs((last ? last.rawR : 0) - sameAreaLast.rawR))}</strong>
+                        }。
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* 建议 */}
+              <div style={{ background: buyWins === (sameAreaLast.rawB > sameAreaLast.rawR)
+                ? (buyWins ? "#EEF0FF" : "#EEF9F5")
+                : "#FFF8ED",
+                borderRadius: 12, padding: "12px 14px", fontSize: 12, lineHeight: 1.7 }}>
+                <strong style={{ color: COLOR.text }}>建议：</strong>
+                {" "}
+                {areaDiff === 0
+                  ? "两方案面积相同，结论与模式一一致。"
+                  : buyWins === (sameAreaLast.rawB > sameAreaLast.rawR)
+                    ? (buyWins
+                        ? "无论同等还是不同面积，买房净资产均领先。面积差异不改变结论，主要影响生活舒适度。"
+                        : "无论同等还是不同面积，租房净资产均领先。面积差异不改变结论，主要影响生活舒适度。")
+                    : "两种方案在同等/不同面积下结论相反，说明面积差异对结果有决定性影响。建议调整面积直到找到临界点，或重新考虑哪种居住空间更符合实际需求。"
+                }
+              </div>
+            </Card>
+          )}
+
+          {/* ── 敏感性热力图 ── */}
           <Card p="20px" style={{ marginTop: 12 }}>
             <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>敏感性热力图</div>
             <div style={{ fontSize: 12, color: COLOR.muted, marginBottom: 14, lineHeight: 1.6 }}>
               横轴：投资收益率 · 纵轴：租金单价<br />
-              <span style={{ fontSize: 11 }}>蓝色 = 买房净资产更高 · 绿色 = 租房净资产更高 · 颜色越深差距越大</span>
+              <span style={{ fontSize: 11 }}>蓝色 = 买房净资产更高 · 绿色 = 租房净资产更高 · 颜色越深差距越大（占房价%）</span>
             </div>
             <div style={{ overflowX: "auto" }}>
               <div style={{ minWidth: 360 }}>
@@ -583,15 +760,15 @@ export default function App() {
                 </div>
                 <div style={{ position: "relative" }}>
                   {heatmapRentRange.map(function(rp, ri) {
-                    var diff0 = Math.max(0, Math.round(mortgage + fee - rp * area));
+                    var diff0 = Math.round(mortgage + fee - rp * effRentArea);
                     return (
                       <div key={rp} style={{ display: "flex", alignItems: "center", marginBottom: 3 }}>
                         <div style={{ width: 88, flexShrink: 0, paddingRight: 8, overflow: "hidden" }}>
                           <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.text, textAlign: "right", whiteSpace: "nowrap" }}>
-                            {diff0 > 0 ? ("差 " + fmtK(diff0)) : "持平"}
+                            {diff0 > 0 ? ("差 " + fmtK(diff0)) : diff0 < 0 ? ("差 " + fmtK(diff0)) : "持平"}
                           </div>
                           <div style={{ fontSize: 9, color: COLOR.muted, textAlign: "right", whiteSpace: "nowrap" }}>
-                            {fmtSym(rp) + "/平米"}
+                            {fmtSym(rp) + "/m²"}
                           </div>
                         </div>
                         {heatmap[ri] && heatmap[ri].map(function(diff, ii) {
@@ -605,7 +782,7 @@ export default function App() {
                                 {diff > 0 ? "买+" : diff < 0 ? "租+" : "平"}
                               </div>
                               {absD > 0 && (
-                                <div style={{ fontSize: absD >= 100 ? 7 : 8, color: tc, lineHeight: 1.1, whiteSpace: "nowrap" }}>
+                                <div style={{ fontSize: 8, color: tc, lineHeight: 1.1, whiteSpace: "nowrap" }}>
                                   {absD + "%"}
                                 </div>
                               )}
@@ -619,9 +796,9 @@ export default function App() {
                     var ROW_H = 37;
                     var rentRangeMin = heatmapRentRange[0];
                     var rentRangeMax = heatmapRentRange[heatmapRentRange.length - 1];
-                    var cInv  = Math.min(Math.max(invRet, INV_RANGE[0]),  INV_RANGE[INV_RANGE.length - 1]);
+                    var cInv  = Math.min(Math.max(invRet, INV_RANGE[0]), INV_RANGE[INV_RANGE.length - 1]);
                     var cRent = Math.min(Math.max(rentPPM, rentRangeMin), rentRangeMax);
-                    var xFrac = (cInv  - INV_RANGE[0])  / (INV_RANGE[INV_RANGE.length - 1]  - INV_RANGE[0]);
+                    var xFrac = (cInv - INV_RANGE[0]) / (INV_RANGE[INV_RANGE.length - 1] - INV_RANGE[0]);
                     var yFrac = (cRent - rentRangeMin) / (rentRangeMax - rentRangeMin);
                     var topPx = yFrac * (heatmapRentRange.length - 1) * ROW_H + ROW_H / 2;
                     return (
@@ -641,40 +818,13 @@ export default function App() {
             </div>
           </Card>
 
-          <Card p="20px" style={{ marginTop: 12 }}>
-            <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 12 }}>为什么结果这么敏感？</div>
-            <div style={{ fontSize: 13, color: COLOR.sub, lineHeight: 1.8, marginBottom: 14 }}>
-              从热力图可以看出，买房和租房之间存在一条清晰的<strong style={{ color: COLOR.text }}>临界线</strong>。你当前的参数设置大概率落在这条线附近——这正是两种方案差距最小、结论最容易被参数扰动的区域。
-            </div>
-            <div style={{ background: COLOR.bg, borderRadius: 12, padding: "14px", marginBottom: 12 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: COLOR.text, marginBottom: 8 }}>复利的蝴蝶效应</div>
-              <div style={{ fontSize: 12, color: COLOR.sub, lineHeight: 1.7 }}>
-                投资收益率从 3% 提高到 4%，听起来只差一个百分点，但在 25 年复利下，差距可以超出本金的 30%。月差额每增加 {fmtK(Math.round(price / 1000))}，25 年后最终净资产也会有显著差异。
-              </div>
-            </div>
-            <div style={{ background: COLOR.bg, borderRadius: 12, padding: "14px", marginBottom: 12 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: COLOR.text, marginBottom: 8 }}>正确的决策框架</div>
-              <div style={{ fontSize: 12, color: COLOR.sub, lineHeight: 1.7 }}>
-                当模型对参数高度敏感时，追求精确计算本身就是一个陷阱。更有价值的问题是：<strong style={{ color: COLOR.text }}>你对哪些假设更有把握？</strong><br />
-                · 你能长期维持 {invRet}% 的投资收益率吗？（历史上全球指数基金约 6-8%，但短期波动极大）<br />
-                · 当地房价会以 {propGrowth}% 继续增长吗？<br />
-                · 你能坚持 {loanTerm} 年不中断投资，市场暴跌时也不卖出吗？
-              </div>
-            </div>
-            <div style={{ background: "#FFF8ED", borderRadius: 12, padding: "14px" }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "#78350F", marginBottom: 6 }}>结论</div>
-              <div style={{ fontSize: 12, color: "#92400E", lineHeight: 1.7 }}>
-                买房和租房在财务上<strong>没有绝对的优劣</strong>。热力图的真正价值在于告诉你：离临界线越近，就越不应该纠结于"哪个赢了"，而应该关注<strong>哪个方案更符合你的风险承受能力和行为习惯</strong>。
-              </div>
-            </div>
-          </Card>
-
+          {/* ── N年后资产构成 ── */}
           <Card p="20px" style={{ marginTop: 12 }}>
             <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>{loanTerm} 年后资产构成</div>
             <div style={{ fontSize: 12, color: COLOR.muted, marginBottom: 14 }}>如当年退出（卖房 / 清仓）税后到手</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
               <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: COLOR.buy, marginBottom: 10, paddingBottom: 8, borderBottom: "2px solid " + COLOR.buy }}>买房方案</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: COLOR.buy, marginBottom: 10, paddingBottom: 8, borderBottom: "2px solid " + COLOR.buy }}>买房方案{mode === "diff" ? " (" + effBuyArea + "m²)" : ""}</div>
                 {[
                   ["首次投入", fmt(outlay), COLOR.text, false, "首付 + 过户税 + 手续费"],
                   ["净投入", fmt(last ? last.BuyOut : 0), COLOR.text, false, loanTerm + "年全部现金流出"],
@@ -695,7 +845,7 @@ export default function App() {
                 })}
               </div>
               <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: COLOR.green, marginBottom: 10, paddingBottom: 8, borderBottom: "2px solid " + COLOR.green }}>租房方案</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: COLOR.green, marginBottom: 10, paddingBottom: 8, borderBottom: "2px solid " + COLOR.green }}>租房方案{mode === "diff" ? " (" + effRentArea + "m²)" : ""}</div>
                 {[
                   ["首次投入", fmt(outlay), COLOR.text, false, "同等金额第0天全部入市"],
                   ["净投入", fmt(last ? last.RentOut : 0), COLOR.text, false, loanTerm + "年租金（沉没成本）"],
@@ -716,12 +866,6 @@ export default function App() {
                 })}
               </div>
             </div>
-            <div style={{ background: "#FFF8ED", borderRadius: 12, padding: "12px 14px", marginBottom: 10, fontSize: 12, lineHeight: 1.7 }}>
-              <strong style={{ color: "#78350F" }}>杠杆是什么？</strong>
-              <span style={{ color: "#92400E" }}>
-                {" "}买房时你用首付 {fmt(down)} 控制了一套价值 {fmt(price)} 的资产——这就是 {Math.round(100/downPct)} 倍杠杆。房价每涨 1%，你的买房净资产增加约 {Math.round(price / (last ? Math.max(last.rawB, 1) : outlay) * 10) / 10}%（放大效应）；反之房价下跌时也会被放大。租房方案无杠杆，涨跌完全由市场决定，不存在强制爆仓风险。
-              </span>
-            </div>
             <div style={{ background: buyWins ? "#EEF0FF" : "#EEF9F5", borderRadius: 12, padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <span style={{ fontSize: 13, fontWeight: 700, color: buyWins ? COLOR.buy : COLOR.green }}>
                 {loanTerm} 年后{buyWins ? "买房" : "租房"}净资产领先
@@ -732,11 +876,11 @@ export default function App() {
             </div>
           </Card>
 
+          {/* ── 保本收益率 ── */}
           <Card p="20px" style={{ marginTop: 12 }}>
             <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>保本收益率</div>
             <div style={{ fontSize: 12, color: COLOR.muted, marginBottom: 16, lineHeight: 1.6 }}>
-              在租房方案中，每月省下的差额（买房支出 - 月租金）用于投资理财。
-              下面这个数字是：<strong style={{ color: COLOR.text }}>理财年化收益率需要达到多少，{loanTerm} 年后净资产才能追平买房方案。</strong>
+              租房方案中，每月节省的差额用于投资。<strong style={{ color: COLOR.text }}>理财年化收益率需达到多少，{loanTerm} 年后净资产才能追平买房？</strong>
             </div>
             <div style={{ display: "flex", alignItems: "stretch", gap: 14, marginBottom: 16 }}>
               <div style={{ background: invRet >= breakEvenRate ? "#EEF9F5" : "#EEF0FF", borderRadius: 16, padding: "16px 20px", textAlign: "center", minWidth: 90 }}>
@@ -755,25 +899,18 @@ export default function App() {
                 </div>
               </div>
             </div>
-            <div style={{ background: COLOR.bg, borderRadius: 12, padding: "12px 14px", marginBottom: 10 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.text, marginBottom: 6 }}>每月投资的钱从哪里来？</div>
-              <div style={{ fontSize: 12, color: COLOR.sub, lineHeight: 1.8 }}>
-                ① 初始投入：首付 + 过户税 + 手续费 = <strong style={{ color: COLOR.text }}>{fmt(outlay)}</strong>（第0年全部入市）<br />
-                ② 月差额：买房月支出 {fmt(buyMonthly)} - 月租金 {fmt(rent0)} = <strong style={{ color: COLOR.text }}>{fmt(saving)}/月</strong>，每月追加投入<br />
-                ③ 以上两部分合计复利滚动 {loanTerm} 年
-              </div>
-            </div>
             <div style={{ background: COLOR.bg, borderRadius: 12, padding: "12px 14px" }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.text, marginBottom: 6 }}>为什么保本线是 {breakEvenRate}%？</div>
               <div style={{ fontSize: 11, color: COLOR.muted, lineHeight: 1.7 }}>
                 · 房价年涨 {propGrowth}% 是最大的买房优势来源<br />
-                · 月差额 {fmt(saving)} 越大，可投资的钱越多，保本线越低<br />
-                · 买房交易成本（过户税 {txTax}% + 中介费 {agentFee}%）拉低保本线<br />
+                · 月差额 {fmt(Math.abs(saving))} {saving >= 0 ? "越大，可投资的钱越多，保本线越低" : "（租房更贵），拉低租房净资产"}<br />
+                · 买房交易成本（过户税 {txTax}% + 中介费 {agentFee}%）增加买房阻力<br />
                 · 投资收益需缴 {invTax}% 资本利得税，而买房自住免税
               </div>
             </div>
           </Card>
 
+          {/* ── 机会成本 ── */}
           <Card p="20px" style={{ marginTop: 12 }}>
             <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 14 }}>机会成本</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
@@ -781,7 +918,7 @@ export default function App() {
                 <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.buy, marginBottom: 8 }}>买房放弃了什么</div>
                 <div style={{ fontSize: 12, color: COLOR.sub, lineHeight: 1.7 }}>
                   首付等初始投入 <strong>{fmt(outlay)}</strong> 锁进房产。
-                  每月多付 <strong>{fmt(saving)}</strong> 无法复利增值。
+                  {saving >= 0 ? <>每月多付 <strong>{fmt(saving)}</strong> 无法复利增值。</> : <>每月反而节省 <strong>{fmt(-saving)}</strong>。</>}
                   {loanTerm} 年内资金流动性极低。
                 </div>
               </div>
@@ -790,19 +927,20 @@ export default function App() {
                 <div style={{ fontSize: 12, color: COLOR.sub, lineHeight: 1.7 }}>
                   放弃持有每年涨 <strong>{propGrowth}%</strong> 的资产。
                   {loanTerm} 年后房产预计市值 <strong>{fmt(last ? last.rawPV : 0)}</strong>。
-                  每月租金是纯消耗。
+                  {saving < 0 && <>每月多支出 <strong>{fmt(-saving)}</strong>。</>}
                 </div>
               </div>
             </div>
             <div style={{ background: COLOR.bg, borderRadius: 10, padding: "12px 14px", fontSize: 12, color: COLOR.sub, lineHeight: 1.7 }}>
               <strong style={{ color: COLOR.text }}>综合结论：</strong>
               {buyWins
-                ? " 当前参数下买房机会成本更低——房产升值（" + propGrowth + "%/年）弥补了资金锁定的损失，买房是更优的资产配置。"
+                ? " 当前参数下买房机会成本更低——房产升值（" + propGrowth + "%/年）弥补了资金锁定的损失。"
                 : " 当前参数下租房机会成本更低——资金投入市场（" + invRet + "%/年）比锁进房产更高效，" + loanTerm + " 年复利积累超越了房产增值。"
               }
             </div>
           </Card>
 
+          {/* ── 强制储蓄效应 ── */}
           <Card p="20px" style={{ marginTop: 12 }}>
             <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 14 }}>强制储蓄效应</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
@@ -815,7 +953,10 @@ export default function App() {
               <div style={{ background: "#EEF9F5", borderRadius: 14, padding: "14px" }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.green, marginBottom: 6 }}>租房：主动投资</div>
                 <div style={{ fontSize: 12, color: COLOR.sub, lineHeight: 1.7 }}>
-                  需要主动把差额 {fmt(saving)}/月 投入理财，坚持 {loanTerm} 年，且市场暴跌时不卖出。
+                  {saving >= 0
+                    ? "需要主动把差额 " + fmt(saving) + "/月 投入理财，坚持 " + loanTerm + " 年，且市场暴跌时不卖出。"
+                    : "租房月支出更高（多 " + fmt(-saving) + "/月），需要更强的现金流管理能力。"
+                  }
                 </div>
               </div>
             </div>
@@ -824,6 +965,7 @@ export default function App() {
             </div>
           </Card>
 
+          {/* ── 居住体验对比 ── */}
           <Card p="20px" style={{ marginTop: 12 }}>
             <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 14 }}>居住体验对比</div>
             {[

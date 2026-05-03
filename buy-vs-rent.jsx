@@ -418,8 +418,6 @@ export default function App() {
       })
       .catch(function() { setExporting(false); });
   }
-      .catch(function() { setExporting(false); });
-  }
 
   var crossStatus = crossings.length === 0
     ? (buyWins ? "买房领先" : "租房领先")

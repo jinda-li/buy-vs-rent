@@ -578,7 +578,7 @@ export default function App() {
 
           {/* ── 买房/租房参数 ── */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <Card p="18px" mb={0}>
+            <Card p="18px">
               <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.buy, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 12 }}>买房</div>
               <SliderField label="购买单价" value={buyPPM}
                 min={cur.r.buyPPM[0]} max={cur.r.buyPPM[1]} step={cur.r.buyPPM[2]}
@@ -614,7 +614,7 @@ export default function App() {
               </div>
             </Card>
 
-            <Card p="18px" mb={0}>
+            <Card p="18px">
               <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.green, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 12 }}>租房</div>
               <SliderField label="租金单价" value={rentPPM}
                 min={cur.r.rentPPM[0]} max={cur.r.rentPPM[1]} step={cur.r.rentPPM[2]}
@@ -636,7 +636,7 @@ export default function App() {
           </div>
 
           {/* ── 更多设置 ── */}
-          <div style={{ marginTop: 12 }}>
+          <div>
             <button onClick={function() { setMoreOpen(!moreOpen); }} style={{ width: "100%", padding: "14px 20px", borderRadius: 16, border: "none", background: COLOR.card, cursor: "pointer", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <span style={{ fontSize: 14, fontWeight: 600, color: COLOR.text }}>更多设置</span>
               <span style={{ fontSize: 13, color: COLOR.muted }}>{moreOpen ? "收起 ▲" : "展开 ▼"}</span>

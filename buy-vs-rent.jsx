@@ -847,6 +847,10 @@ export default function App() {
 
             {/* 财务机会成本 */}
             <div style={{ fontSize: 12, fontWeight: 700, color: COLOR.text, marginBottom: 10 }}>财务机会成本</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.buy, background: "#EEF0FF", borderRadius: 8, padding: "6px 10px" }}>← 买房放弃了什么</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.green, background: "#EEF9F5", borderRadius: 8, padding: "6px 10px" }}>← 租房放弃了什么</div>
+            </div>
             {[
               {
                 label: "初始资金",
@@ -916,8 +920,12 @@ export default function App() {
 
             {/* 生活机会成本 */}
             <div style={{ fontSize: 12, fontWeight: 700, color: COLOR.text, marginBottom: 6, paddingTop: 14, borderTop: "1px solid " + COLOR.border }}>生活机会成本</div>
-            <div style={{ fontSize: 12, color: COLOR.muted, marginBottom: 14, lineHeight: 1.5 }}>
+            <div style={{ fontSize: 12, color: COLOR.muted, marginBottom: 10, lineHeight: 1.5 }}>
               这些是财务模型无法量化、但同样真实的放弃——每种优势背后都藏着对应的代价。
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 14 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.buy, background: "#EEF0FF", borderRadius: 8, padding: "6px 10px" }}>← 买房放弃了什么</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.green, background: "#EEF9F5", borderRadius: 8, padding: "6px 10px" }}>← 租房放弃了什么</div>
             </div>
             {[
               ["稳定性",      "永久居住权，不受房东约束，适合长期定居",           "合同到期面临搬家或涨价风险，居住稳定性依赖房东意愿",   COLOR.buy],

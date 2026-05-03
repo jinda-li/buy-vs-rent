@@ -954,7 +954,7 @@ export default function App() {
                 label: "居住保障",
                 buy: "永久产权，住多久由自己决定，不受任何人驱逐，心理上真正的家",
                 rent: "灵活自由，随时可以换环境，没有长期居住义务，生活选项始终开放",
-                adv: COLOR.buy,
+                adv: "tie",
               },
               {
                 label: "生活自由度",

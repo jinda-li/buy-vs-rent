@@ -686,7 +686,7 @@ export default function App() {
           </div>
 
           {/* ── 净资产走势图 ── */}
-          <Card mb={0} p="20px" style={{ marginTop: 24 }}>
+          <Card mb={0} p="20px" style={{ marginTop: 36 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
               <span style={{ fontSize: 15, fontWeight: 700 }}>净资产走势</span>
               <span style={{ fontSize: 12, color: buyWins ? COLOR.buy : COLOR.green, fontWeight: 700 }}>{crossStatus}</span>

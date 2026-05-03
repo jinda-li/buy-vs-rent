@@ -42,7 +42,7 @@ function Label(props) {
 
 function Card(props) {
   return (
-    <div style={{ background: COLOR.card, borderRadius: 20, padding: props.p || "20px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", marginBottom: props.mb || 12 }}>
+    <div style={Object.assign({ background: COLOR.card, borderRadius: 20, padding: props.p || "20px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", marginBottom: props.mb || 12 }, props.style || {})}>
       {props.children}
     </div>
   );
@@ -632,13 +632,13 @@ export default function App() {
           </div>
 
           {/* ── 更多设置 ── */}
-          <div style={{ marginTop: 12 }}>
+          <div style={{ marginTop: 20 }}>
             <button onClick={function() { setMoreOpen(!moreOpen); }} style={{ width: "100%", padding: "14px 20px", borderRadius: 16, border: "none", background: COLOR.card, cursor: "pointer", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <span style={{ fontSize: 14, fontWeight: 600, color: COLOR.text }}>更多设置</span>
               <span style={{ fontSize: 13, color: COLOR.muted }}>{moreOpen ? "收起 ▲" : "展开 ▼"}</span>
             </button>
             {moreOpen && (
-              <Card p="20px" mb={0}>
+              <Card p="20px" mb={0} style={{ marginTop: 10 }}>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 20px" }}>
                   <div>
                     <div style={{ fontSize: 12, fontWeight: 700, color: COLOR.buy, marginBottom: 14 }}>买房参数</div>

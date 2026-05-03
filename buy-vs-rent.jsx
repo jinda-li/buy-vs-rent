@@ -636,7 +636,7 @@ export default function App() {
           </div>
 
           {/* ── 更多设置 ── */}
-          <div style={{ marginTop: 20 }}>
+          <div style={{ marginTop: 12 }}>
             <button onClick={function() { setMoreOpen(!moreOpen); }} style={{ width: "100%", padding: "14px 20px", borderRadius: 16, border: "none", background: COLOR.card, cursor: "pointer", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <span style={{ fontSize: 14, fontWeight: 600, color: COLOR.text }}>更多设置</span>
               <span style={{ fontSize: 13, color: COLOR.muted }}>{moreOpen ? "收起 ▲" : "展开 ▼"}</span>
@@ -690,7 +690,7 @@ export default function App() {
           </div>
 
           {/* ── 净资产走势图 ── */}
-          <Card mb={0} p="20px" style={{ marginTop: 36 }}>
+          <Card mb={0} p="20px" style={{ marginTop: 12 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
               <span style={{ fontSize: 15, fontWeight: 700 }}>净资产走势</span>
               <span style={{ fontSize: 12, color: buyWins ? COLOR.buy : COLOR.green, fontWeight: 700 }}>{crossStatus}</span>

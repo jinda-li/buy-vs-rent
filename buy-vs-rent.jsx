@@ -853,7 +853,7 @@ export default function App() {
           <Card p="20px" style={{ marginTop: 12 }}>
             <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>综合对比</div>
             <div style={{ fontSize: 12, color: COLOR.muted, marginBottom: 14, lineHeight: 1.6 }}>
-              买房和租房各有真实的好处。以下列出每种方案能为你带来什么——<strong style={{ color: COLOR.text }}>加粗部分</strong>是该维度的优胜方。
+              买房和租房各有真实的好处。有明显优劣之分的维度会标注占优方，各有各好处的则并列展示。
             </div>
 
             {/* 列标题 */}
@@ -869,7 +869,7 @@ export default function App() {
                 label: "初始资金",
                 buy: "首付+手续费共 " + fmt(outlay) + "，换来 " + fmt(price) + " 的房产，" + Math.round(100 / downPct) + " 倍杠杆从第一天起放大增值空间",
                 rent: "同等 " + fmt(outlay) + " 全部入市，立即开始复利滚动，随时可动用或调仓，不被单一资产锁定",
-                adv: COLOR.green,
+                adv: "tie",
               },
               {
                 label: "月度积累",
@@ -901,23 +901,32 @@ export default function App() {
                 label: "执行门槛",
                 buy: "月供自动扣款，强制储蓄，执行率 100%，不依赖意志力，任何市场行情下都持续积累",
                 rent: "需主动把 " + fmt(Math.abs(saving)) + "/月 纪律性投入理财，坚持 " + loanTerm + " 年，市场暴跌时尤其考验定力",
-                adv: COLOR.buy,
+                adv: "tie",
               },
             ].map(function(row, idx) {
-              var buyWinsRow = row.adv === COLOR.buy;
+              var isTie = row.adv === "tie";
+              var buyWinsRow = !isTie && row.adv === COLOR.buy;
+              var rentWinsRow = !isTie && row.adv === COLOR.green;
               return (
                 <div key={idx} style={{ marginBottom: 14, paddingBottom: 14, borderBottom: "1px solid " + COLOR.border }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 7 }}>
                     <span style={{ fontSize: 11, fontWeight: 700, color: COLOR.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>{row.label}</span>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: row.adv, background: buyWinsRow ? "#EEF0FF" : "#EEF9F5", padding: "2px 8px", borderRadius: 999 }}>
-                      {buyWinsRow ? "买房占优" : "租房占优"}
-                    </span>
+                    {isTie
+                      ? <span style={{ fontSize: 10, fontWeight: 600, color: COLOR.muted, background: "#F2F2F5", padding: "2px 8px", borderRadius: 999 }}>各有优势</span>
+                      : <span style={{ fontSize: 10, fontWeight: 700, color: row.adv, background: buyWinsRow ? "#EEF0FF" : "#EEF9F5", padding: "2px 8px", borderRadius: 999 }}>
+                          {buyWinsRow ? "买房占优" : "租房占优"}
+                        </span>
+                    }
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                    <div style={{ fontSize: 12, lineHeight: 1.6, borderLeft: "2.5px solid " + (buyWinsRow ? COLOR.buy : "#DDD"), paddingLeft: 8,
-                      fontWeight: buyWinsRow ? 600 : 400, color: buyWinsRow ? COLOR.text : "#ABABAB" }}>{row.buy}</div>
-                    <div style={{ fontSize: 12, lineHeight: 1.6, borderLeft: "2.5px solid " + (!buyWinsRow ? COLOR.green : "#DDD"), paddingLeft: 8,
-                      fontWeight: !buyWinsRow ? 600 : 400, color: !buyWinsRow ? COLOR.text : "#ABABAB" }}>{row.rent}</div>
+                    <div style={{ fontSize: 12, lineHeight: 1.6, paddingLeft: 8,
+                      borderLeft: "2.5px solid " + (isTie ? "#DDD" : buyWinsRow ? COLOR.buy : "#DDD"),
+                      fontWeight: isTie ? 400 : buyWinsRow ? 600 : 400,
+                      color: isTie ? COLOR.sub : buyWinsRow ? COLOR.text : "#ABABAB" }}>{row.buy}</div>
+                    <div style={{ fontSize: 12, lineHeight: 1.6, paddingLeft: 8,
+                      borderLeft: "2.5px solid " + (isTie ? "#DDD" : rentWinsRow ? COLOR.green : "#DDD"),
+                      fontWeight: isTie ? 400 : rentWinsRow ? 600 : 400,
+                      color: isTie ? COLOR.sub : rentWinsRow ? COLOR.text : "#ABABAB" }}>{row.rent}</div>
                   </div>
                 </div>
               );
@@ -957,42 +966,51 @@ export default function App() {
                 label: "个性化空间",
                 buy: "完全自主改造装修，按自己的想法生活，添置长期物品无后顾之忧",
                 rent: "无装修负担，入住即可使用，维修保养交给房东，省时省力",
-                adv: COLOR.buy,
+                adv: "tie",
               },
               {
                 label: "财务弹性",
                 buy: "月供固定，不受租金市场波动影响，长期住房成本可准确预期",
                 rent: "收入下降可主动换小房，月支出始终在自己掌控中",
-                adv: COLOR.green,
+                adv: "tie",
               },
               {
                 label: "维修管理",
                 buy: "完全掌控房屋，可按自己意愿升级改善，增值归属自己",
                 rent: "维修保养联系房东即可，省去时间和精力，专注自己的生活",
-                adv: COLOR.green,
+                adv: "tie",
               },
               {
                 label: "社区归属",
                 buy: "长期定居形成深度邻里关系，归属感和安全感更强",
                 rent: "接触不同社区和人群，生活体验更多元，适应力更强",
-                adv: COLOR.buy,
+                adv: "tie",
               },
             ].map(function(row, idx) {
-              var buyWinsRow = row.adv === COLOR.buy;
+              var isTie = row.adv === "tie";
+              var buyWinsRow = !isTie && row.adv === COLOR.buy;
+              var rentWinsRow = !isTie && row.adv === COLOR.green;
               var isLast = idx === 5;
               return (
                 <div key={idx} style={{ marginBottom: isLast ? 0 : 14, paddingBottom: isLast ? 0 : 14, borderBottom: isLast ? "none" : "1px solid " + COLOR.border }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 7 }}>
                     <span style={{ fontSize: 11, fontWeight: 700, color: COLOR.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>{row.label}</span>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: row.adv, background: buyWinsRow ? "#EEF0FF" : "#EEF9F5", padding: "2px 8px", borderRadius: 999 }}>
-                      {buyWinsRow ? "买房占优" : "租房占优"}
-                    </span>
+                    {isTie
+                      ? <span style={{ fontSize: 10, fontWeight: 600, color: COLOR.muted, background: "#F2F2F5", padding: "2px 8px", borderRadius: 999 }}>各有优势</span>
+                      : <span style={{ fontSize: 10, fontWeight: 700, color: row.adv, background: buyWinsRow ? "#EEF0FF" : "#EEF9F5", padding: "2px 8px", borderRadius: 999 }}>
+                          {buyWinsRow ? "买房占优" : "租房占优"}
+                        </span>
+                    }
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                    <div style={{ fontSize: 12, lineHeight: 1.6, borderLeft: "2.5px solid " + (buyWinsRow ? COLOR.buy : "#DDD"), paddingLeft: 8,
-                      fontWeight: buyWinsRow ? 600 : 400, color: buyWinsRow ? COLOR.text : "#ABABAB" }}>{row.buy}</div>
-                    <div style={{ fontSize: 12, lineHeight: 1.6, borderLeft: "2.5px solid " + (!buyWinsRow ? COLOR.green : "#DDD"), paddingLeft: 8,
-                      fontWeight: !buyWinsRow ? 600 : 400, color: !buyWinsRow ? COLOR.text : "#ABABAB" }}>{row.rent}</div>
+                    <div style={{ fontSize: 12, lineHeight: 1.6, paddingLeft: 8,
+                      borderLeft: "2.5px solid " + (isTie ? "#DDD" : buyWinsRow ? COLOR.buy : "#DDD"),
+                      fontWeight: isTie ? 400 : buyWinsRow ? 600 : 400,
+                      color: isTie ? COLOR.sub : buyWinsRow ? COLOR.text : "#ABABAB" }}>{row.buy}</div>
+                    <div style={{ fontSize: 12, lineHeight: 1.6, paddingLeft: 8,
+                      borderLeft: "2.5px solid " + (isTie ? "#DDD" : rentWinsRow ? COLOR.green : "#DDD"),
+                      fontWeight: isTie ? 400 : rentWinsRow ? 600 : 400,
+                      color: isTie ? COLOR.sub : rentWinsRow ? COLOR.text : "#ABABAB" }}>{row.rent}</div>
                   </div>
                 </div>
               );

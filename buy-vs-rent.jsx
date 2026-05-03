@@ -9,7 +9,7 @@ var CURRENCIES = {
   EUR: { sym: "€",  locale: "fi-FI", after: true,  bankFees: 500,
     label: "欧元 EUR",
     d: { buyPPM: 3300,  rentPPM: 15,  fee: 270 },
-    r: { buyPPM: [500, 20000, 100],   rentPPM: [3, 60, 0.5],  fee: [50, 2000, 10]  } },
+    r: { buyPPM: [500, 10000, 100],   rentPPM: [3, 60, 0.5],  fee: [50, 2000, 10]  } },
   USD: { sym: "$",  locale: "en-US", after: false, bankFees: 3000,
     label: "美元 USD",
     d: { buyPPM: 5000,  rentPPM: 25,  fee: 400 },
@@ -62,12 +62,44 @@ function InfoTip(props) {
   );
 }
 
+function EditableNum(props) {
+  var es = useState(false); var editing = es[0]; var setEditing = es[1];
+  var vs = useState("");    var editVal = vs[0]; var setEditVal = vs[1];
+  function startEdit() { setEditVal(String(props.value)); setEditing(true); }
+  function commit(v) {
+    var n = parseFloat(v);
+    if (!isNaN(n) && n > 0) props.onChange(n);
+    setEditing(false);
+  }
+  function handleKey(e) {
+    if (e.key === "Enter") { e.preventDefault(); commit(e.target.value); }
+    if (e.key === "Escape") setEditing(false);
+  }
+  var c = props.color || COLOR.primary;
+  if (editing) return (
+    <input autoFocus type="number" value={editVal}
+      onChange={function(e) { setEditVal(e.target.value); }}
+      onBlur={function(e) { commit(e.target.value); }}
+      onKeyDown={handleKey}
+      style={{ width: 88, fontSize: props.fontSize || 16, fontWeight: 700, color: c,
+        border: "none", borderBottom: "2px solid " + c, background: "transparent",
+        outline: "none", textAlign: "right", padding: 0, fontFamily: "inherit" }} />
+  );
+  return (
+    <span onClick={startEdit} title="点击直接输入数值"
+      style={{ fontSize: props.fontSize || 16, fontWeight: 700, color: c, cursor: "text",
+        borderBottom: "1.5px dashed " + c + "55" }}>
+      {props.display}
+    </span>
+  );
+}
+
 function SliderField(props) {
   return (
     <div style={{ marginBottom: 18 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4 }}>
         <Label>{props.label}</Label>
-        <span style={{ fontSize: 16, fontWeight: 700, color: props.color || COLOR.primary }}>{props.display}</span>
+        <EditableNum value={props.value} display={props.display} onChange={props.onChange} color={props.color} />
       </div>
       {props.sub && <div style={{ fontSize: 11, color: COLOR.muted, marginBottom: 6 }}>{props.sub}</div>}
       <div style={{ position: "relative", height: 6, borderRadius: 99, background: "#E8E8EC" }}>
@@ -442,8 +474,7 @@ export default function App() {
             <Card>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
                 <span style={{ fontSize: 15, fontWeight: 700 }}>居住面积</span>
-                <span style={{ fontSize: 20, fontWeight: 800, color: COLOR.primary }}>{area} 平米</span>
-              </div>
+                <EditableNum value={area} display={area + " 平米"} onChange={setArea} color={COLOR.primary} fontSize={20} />              </div>
               <div style={{ position: "relative", height: 6, borderRadius: 99, background: "#E8E8EC" }}>
                 <div style={{ position: "absolute", left: 0, top: 0, height: "100%", borderRadius: 99, background: COLOR.primary, width: ((area - 20) / 130 * 100) + "%" }} />
                 <input type="range" min={20} max={150} step={1} value={area}
@@ -471,7 +502,9 @@ export default function App() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.buy, marginBottom: 8 }}>买房面积</div>
-                  <div style={{ fontSize: 22, fontWeight: 800, color: COLOR.buy, marginBottom: 8 }}>{buyArea} m²</div>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: COLOR.buy, marginBottom: 8 }}>
+                    <EditableNum value={buyArea} display={buyArea + " m²"} onChange={setBuyArea} color={COLOR.buy} fontSize={22} />
+                  </div>
                   <div style={{ position: "relative", height: 6, borderRadius: 99, background: "#E8E8EC", marginBottom: 4 }}>
                     <div style={{ position: "absolute", left: 0, top: 0, height: "100%", borderRadius: 99, background: COLOR.buy, width: ((buyArea - 20) / 130 * 100) + "%" }} />
                     <input type="range" min={20} max={150} step={1} value={buyArea}
@@ -482,7 +515,9 @@ export default function App() {
                 </div>
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.green, marginBottom: 8 }}>租房面积</div>
-                  <div style={{ fontSize: 22, fontWeight: 800, color: COLOR.green, marginBottom: 8 }}>{rentArea} m²</div>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: COLOR.green, marginBottom: 8 }}>
+                    <EditableNum value={rentArea} display={rentArea + " m²"} onChange={setRentArea} color={COLOR.green} fontSize={22} />
+                  </div>
                   <div style={{ position: "relative", height: 6, borderRadius: 99, background: "#E8E8EC", marginBottom: 4 }}>
                     <div style={{ position: "absolute", left: 0, top: 0, height: "100%", borderRadius: 99, background: COLOR.green, width: ((rentArea - 20) / 130 * 100) + "%" }} />
                     <input type="range" min={20} max={150} step={1} value={rentArea}
@@ -517,7 +552,7 @@ export default function App() {
                       </div>
                     </InfoTip>
                   </div>
-                  <span style={{ fontSize: 16, fontWeight: 700, color: COLOR.buy }}>{fmt(fee) + "/月"}</span>
+                  <EditableNum value={fee} display={fmt(fee) + "/月"} onChange={setFee} color={COLOR.buy} />
                 </div>
                 <div style={{ fontSize: 11, color: COLOR.muted, marginBottom: 6 }}>含物业管理、维修基金、保险等</div>
                 <div style={{ position: "relative", height: 6, borderRadius: 99, background: "#E8E8EC" }}>

@@ -492,9 +492,41 @@ export default function App() {
             }
           </div>
 
-          {/* 核心假设说明 */}
-          <div style={{ marginTop: 8, padding: "10px 12px", borderRadius: 10, background: "#FFFBEB", border: "1px solid #FDE68A", fontSize: 11, color: "#92400E", lineHeight: 1.7 }}>
-            <span style={{ fontWeight: 700 }}>💡 租房方案的假设：</span>租房每月省下的差额（买房月支出 − 租金）会<strong>自动投入理财</strong>，年化收益 <strong>{invRet}%</strong>。最终对比的是「买房净资产」vs「租房 + 投资组合」到手金额。
+          {/* 关键假设 */}
+          <div style={{ marginTop: 8, padding: "14px 14px 12px", borderRadius: 14, background: "white", border: "1px solid " + COLOR.border }}>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 10 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: COLOR.text }}>关键假设</div>
+              <div style={{ fontSize: 10, color: COLOR.muted }}>这个计算器在比较什么</div>
+            </div>
+
+            {/* ① 买房方案 */}
+            <div style={{ display: "flex", gap: 10, marginBottom: 8, padding: "10px 12px", borderRadius: 10, background: "#EEF0FF", borderLeft: "3px solid " + COLOR.buy }}>
+              <div style={{ flexShrink: 0, fontSize: 11, fontWeight: 800, color: COLOR.buy }}>① 买房</div>
+              <div style={{ flex: 1, fontSize: 11, lineHeight: 1.7, color: COLOR.text }}>
+                手头有一笔钱 <strong>{fmt(outlay)}</strong>（首付 {downPct}% + 过户税 + 手续费），全部投入<strong>自住购房</strong>。之后每月承担月供 + 物业费，背上 {loanTerm} 年房贷负债。资产 = <strong>房产升值 − 贷款余额 − 卖出中介费{primaryRes ? "" : " − 资本利得税"}</strong>，从第一天起就用 {Math.round(100/downPct)} 倍杠杆放大房价波动。
+              </div>
+            </div>
+
+            {/* ② 租房方案 */}
+            <div style={{ display: "flex", gap: 10, marginBottom: 8, padding: "10px 12px", borderRadius: 10, background: "#EEF9F5", borderLeft: "3px solid " + COLOR.green }}>
+              <div style={{ flexShrink: 0, fontSize: 11, fontWeight: 800, color: COLOR.green }}>② 租房</div>
+              <div style={{ flex: 1, fontSize: 11, lineHeight: 1.7, color: COLOR.text }}>
+                同样有 <strong>{fmt(outlay)}</strong>，不买房，<strong>全额投入理财</strong>（年化 {invRet}%）。每月省下的差额（买房月支出 − 租金）<strong>继续追投</strong>，{loanTerm} 年后变现按 {invTax}% 缴资本利得税。
+                <div style={{ marginTop: 6, padding: "6px 9px", borderRadius: 6, background: "rgba(255,255,255,0.7)", fontSize: 10.5, color: COLOR.sub, lineHeight: 1.65 }}>
+                  <strong style={{ color: COLOR.green }}>为什么必须投资？</strong> 买房本质是「被迫储蓄」（月供逼你把钱锁进房产），如果租房一方把省下的钱消费掉，那对比就毫无意义。只有<strong>租房同时把同等资金投入市场</strong>，才是公平的对照组。
+                </div>
+              </div>
+            </div>
+
+            {/* ③ 对比逻辑 */}
+            <div style={{ display: "flex", gap: 10, padding: "10px 12px", borderRadius: 10, background: "#FFFBEB", borderLeft: "3px solid #F59E0B" }}>
+              <div style={{ flexShrink: 0, fontSize: 11, fontWeight: 800, color: "#92400E" }}>③ 对比</div>
+              <div style={{ flex: 1, fontSize: 11, lineHeight: 1.7, color: COLOR.text }}>
+                <strong>保持不变</strong>：起始资金 {fmt(outlay)}、对比期 {loanTerm} 年{mode === "same" ? "、居住面积一致（排除空间差异）" : "、居住面积按你设定（含面积差异成本）"}。
+                <strong>唯一变量</strong>：这笔买房资金的<strong>去向</strong> —「锁进房产」 vs 「投入资本市场」。
+                终点比较 <span style={{ color: COLOR.buy, fontWeight: 700 }}>买房净资产</span> 与 <span style={{ color: COLOR.green, fontWeight: 700 }}>租房 + 投资组合（税后）</span>。本计算<strong>只评估这笔资金的财务结果</strong>，不衡量生活方式、灵活度或心理价值。
+              </div>
+            </div>
           </div>
         </div>
 

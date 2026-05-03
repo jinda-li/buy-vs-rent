@@ -2,14 +2,14 @@ import { useState, useMemo } from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 
 var CURRENCIES = {
-  CNY: { sym: "¥",  locale: "zh-CN", after: false, bankFees: 5000,
-    label: "人民币 CNY",
-    d: { buyPPM: 25000, rentPPM: 80,  fee: 500 },
-    r: { buyPPM: [3000, 150000, 1000], rentPPM: [20, 300, 5], fee: [100, 5000, 100] } },
   EUR: { sym: "€",  locale: "fi-FI", after: true,  bankFees: 500,
     label: "欧元 EUR",
     d: { buyPPM: 3300,  rentPPM: 15,  fee: 270 },
     r: { buyPPM: [500, 10000, 100],   rentPPM: [3, 60, 0.5],  fee: [50, 2000, 10]  } },
+  CNY: { sym: "¥",  locale: "zh-CN", after: false, bankFees: 5000,
+    label: "人民币 CNY",
+    d: { buyPPM: 25000, rentPPM: 80,  fee: 500 },
+    r: { buyPPM: [3000, 150000, 1000], rentPPM: [20, 300, 5], fee: [100, 5000, 100] } },
   USD: { sym: "$",  locale: "en-US", after: false, bankFees: 3000,
     label: "美元 USD",
     d: { buyPPM: 5000,  rentPPM: 25,  fee: 400 },
@@ -146,7 +146,7 @@ function ChartTip(props) {
 var INV_RANGE  = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 export default function App() {
-  var sc  = useState("CNY");  var currency    = sc[0];  var setCurrency   = sc[1];
+  var sc  = useState("EUR");  var currency    = sc[0];  var setCurrency   = sc[1];
   var sm  = useState("same"); var mode        = sm[0];  var setMode       = sm[1];
   var cur = CURRENCIES[currency];
 
@@ -205,6 +205,7 @@ export default function App() {
 
   var buyMonthly = mortgage + fee;
   var saving     = buyMonthly - rent0;
+  var firstMonthInterest = Math.round(loan * mRate / 100 / 12);
 
   var chartData = useMemo(function() {
     var loanBal = loan, propVal = price;
@@ -846,34 +847,63 @@ export default function App() {
 
             {/* 财务机会成本 */}
             <div style={{ fontSize: 12, fontWeight: 700, color: COLOR.text, marginBottom: 10 }}>财务机会成本</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
-              <div style={{ background: "#EEF0FF", borderRadius: 14, padding: "14px" }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.buy, marginBottom: 8 }}>买房放弃了什么</div>
-                <div style={{ fontSize: 12, color: COLOR.sub, lineHeight: 1.9 }}>
-                  · 首付 {fmt(down)} + 手续费 {fmt(txAmt + bankFees)} = <strong style={{ color: COLOR.text }}>{fmt(outlay)}</strong> 一次性锁进房产，无法自由流动<br />
-                  · 首年利息约 <strong style={{ color: COLOR.text }}>{fmt(Math.round(loan * mRate / 100 / 12))}/月</strong>，是真正的沉没成本，不形成权益<br />
-                  {saving >= 0
-                    ? <span>· 与租房相比每月多支出 <strong style={{ color: COLOR.text }}>{fmt(saving)}</strong>，{loanTerm}年累计多支出 <strong style={{ color: COLOR.text }}>{fmt(Math.round(saving * 12 * loanTerm))}</strong></span>
-                    : <span>· 与租房相比每月少支出 <strong style={{ color: COLOR.text }}>{fmt(-saving)}</strong>，现金流更宽松</span>
-                  }<br />
-                  · 资产 100% 集中于单一不动产，无法全球分散风险<br />
-                  · 卖房周期 3–6 个月，流动性极差，生活重大变化时选项受限
+            {[
+              {
+                label: "初始资金",
+                buy: "首付 " + fmt(down) + " + 手续费 " + fmt(txAmt + bankFees) + " = " + fmt(outlay) + "，一次性锁进房产，长期无法流动",
+                rent: "同等 " + fmt(outlay) + " 第0天全部入市，立即开始复利滚动，随时可调仓",
+                adv: COLOR.green,
+              },
+              {
+                label: "月度现金流",
+                buy: "月供+物业 " + fmt(buyMonthly) + "，其中利息约 " + fmt(firstMonthInterest) + "/月 是纯消耗，不形成任何权益",
+                rent: saving >= 0
+                  ? "月租 " + fmt(rent0) + "，每月节省 " + fmt(saving) + " 可追加投资"
+                  : "月租 " + fmt(rent0) + "，比买房月支出多 " + fmt(-saving) + "，需额外现金流",
+                adv: saving >= 0 ? COLOR.green : COLOR.buy,
+              },
+              {
+                label: "杠杆",
+                buy: Math.round(100 / downPct) + " 倍杠杆：首付 " + fmt(down) + " 控制 " + fmt(price) + " 的资产，房价每涨1%，净资产涨幅被放大",
+                rent: "无杠杆，收益完全来自实际投入本金，不存在因房价下跌被放大亏损的风险",
+                adv: COLOR.buy,
+              },
+              {
+                label: "资产分散度",
+                buy: "100% 集中于单一不动产，完全暴露于所在城市的房价单一风险",
+                rent: "可分散至全球股票、债券等多类资产，一个 ETF 即可持有数千家公司",
+                adv: COLOR.green,
+              },
+              {
+                label: "流动性",
+                buy: "卖房周期 3–6 个月，急需用钱时无法快速变现，生活变化时选项受限",
+                rent: "随时可卖出，1–3 个工作日到账，面对人生变化时可快速响应",
+                adv: COLOR.green,
+              },
+              {
+                label: "储蓄纪律",
+                buy: "月供自动执行，强制储蓄，执行率100%，不依赖意志力，" + loanTerm + " 年后房产完全属于自己",
+                rent: saving >= 0
+                  ? "需主动把 " + fmt(saving) + "/月 纪律性投入理财，坚持 " + loanTerm + " 年且市场暴跌时不卖出"
+                  : "月支出更高，需更强的收支管理，若纪律不足则数学优势大打折扣",
+                adv: COLOR.buy,
+              },
+            ].map(function(row, idx) {
+              return (
+                <div key={idx} style={{ marginBottom: idx < 5 ? 14 : 0, paddingBottom: idx < 5 ? 14 : 0, borderBottom: idx < 5 ? "1px solid " + COLOR.border : "none" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: COLOR.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>{row.label}</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: row.adv, background: row.adv === COLOR.buy ? "#EEF0FF" : "#EEF9F5", padding: "2px 8px", borderRadius: 999 }}>
+                      {row.adv === COLOR.buy ? "买房占优" : "租房占优"}
+                    </span>
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                    <div style={{ fontSize: 12, color: COLOR.sub, lineHeight: 1.5, borderLeft: "2px solid " + COLOR.buy, paddingLeft: 8 }}>{row.buy}</div>
+                    <div style={{ fontSize: 12, color: COLOR.sub, lineHeight: 1.5, borderLeft: "2px solid " + COLOR.green, paddingLeft: 8 }}>{row.rent}</div>
+                  </div>
                 </div>
-              </div>
-              <div style={{ background: "#EEF9F5", borderRadius: 14, padding: "14px" }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.green, marginBottom: 8 }}>租房放弃了什么</div>
-                <div style={{ fontSize: 12, color: COLOR.sub, lineHeight: 1.9 }}>
-                  · 放弃持有每年涨 <strong style={{ color: COLOR.text }}>{propGrowth}%</strong> 的资产，{loanTerm}年后房产预计市值 <strong style={{ color: COLOR.text }}>{fmt(last ? last.rawPV : 0)}</strong><br />
-                  · 租金是纯消耗，{loanTerm}年累计支出 <strong style={{ color: COLOR.text }}>{fmt(last ? last.RentOut : 0)}</strong>，一分权益也不积累<br />
-                  · 放弃 {Math.round(100 / downPct)} 倍杠杆——首付 {fmt(down)} 控制 {fmt(price)} 的资产，房价每涨 1% 净资产增幅被放大<br />
-                  {saving >= 0
-                    ? <span>· 需主动把节省的 <strong style={{ color: COLOR.text }}>{fmt(saving)}/月</strong> 纪律性投入理财，坚持 {loanTerm} 年不中断</span>
-                    : <span>· 月支出更高，须从收入中额外支出 <strong style={{ color: COLOR.text }}>{fmt(-saving)}/月</strong></span>
-                  }<br />
-                  · 若缺乏投资纪律或在市场暴跌时卖出，数学优势将大打折扣
-                </div>
-              </div>
-            </div>
+              );
+            })}
 
             <div style={{ background: COLOR.bg, borderRadius: 10, padding: "12px 14px", fontSize: 12, color: COLOR.sub, lineHeight: 1.7, marginBottom: 16 }}>
               <strong style={{ color: COLOR.text }}>财务结论：</strong>

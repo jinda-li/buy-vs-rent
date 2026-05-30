@@ -39,7 +39,7 @@ function Label(props) {
 
 function Card(props) {
   return (
-    <div style={Object.assign({ background: COLOR.card, borderRadius: 20, padding: props.p || "20px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", marginBottom: props.mb || 12 }, props.style || {})}>
+    <div style={Object.assign({ background: COLOR.card, borderRadius: 22, padding: props.p || "20px", boxShadow: "0 16px 40px rgba(39,45,77,0.08)", border: "1px solid rgba(255,255,255,0.72)", marginBottom: props.mb || 12 }, props.style || {})}>
       {props.children}
     </div>
   );
@@ -127,6 +127,192 @@ function Row(props) {
       <span style={{ fontSize: 13, color: COLOR.sub }}>{props.label}</span>
       <span style={{ fontSize: 14, fontWeight: 700, color: props.color || COLOR.text, fontFamily: "monospace" }}>{props.value}</span>
     </div>
+  );
+}
+
+function ResponsiveStyles() {
+  return (
+    <style>{`
+      .bvr-page { background: #EDEFF4; }
+      .bvr-shell {
+        width: min(1200px, calc(100vw - 40px));
+        margin: 0 auto;
+        padding: 20px 0 48px;
+      }
+      .bvr-nav {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        background: #FFFFFF;
+        border: 1px solid #ECEDF2;
+        border-radius: 18px;
+        box-shadow: 0 10px 30px rgba(39, 45, 77, 0.05);
+        padding: 12px 20px;
+        margin-bottom: 16px;
+      }
+      .bvr-brand { display: flex; align-items: center; }
+      .bvr-nav-meta { color: ${COLOR.muted}; font-size: 13px; }
+      .bvr-nav-spacer { flex: 1; }
+      .bvr-nav-actions { display: flex; align-items: center; gap: 10px; }
+      .bvr-card-base {
+        background: #FFFFFF;
+        border: 1px solid #ECEDF2;
+        border-radius: 22px;
+        box-shadow: 0 12px 34px rgba(39, 45, 77, 0.06);
+      }
+      .bvr-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        gap: 14px;
+        margin-bottom: 16px;
+      }
+      .bvr-currency-grid {
+        display: grid !important;
+        grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+      }
+      .bvr-mode-grid,
+      .bvr-card-grid,
+      .bvr-settings-grid {
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
+      }
+      .bvr-assume-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        align-items: start;
+      }
+      .bvr-panel {
+        background: #FFFFFF;
+        border: 1px solid #ECEDF2;
+        border-radius: 22px;
+        box-shadow: 0 12px 34px rgba(39, 45, 77, 0.06);
+        padding: 22px;
+        margin-bottom: 16px;
+      }
+      .bvr-setup-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        align-items: start;
+      }
+      .bvr-setup-block { min-width: 0; }
+      .bvr-setup-currency .bvr-currency-grid {
+        grid-template-columns: 1fr 1fr !important;
+      }
+      .bvr-setup-mode .bvr-mode-grid {
+        grid-template-columns: 1fr 1fr !important;
+      }
+      .bvr-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        align-items: stretch;
+        margin-bottom: 16px;
+      }
+      .bvr-col {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        min-width: 0;
+      }
+      .bvr-col > * { margin: 0 !important; }
+      .bvr-col-chart { min-height: 100%; }
+      .bvr-col-chart > div {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        height: 100%;
+      }
+      .bvr-col-chart .bvr-chart-body {
+        flex: 1;
+        min-height: 280px;
+      }
+      .bvr-col-inputs > .bvr-param-pair { flex: 1; }
+      .bvr-param-pair {
+        align-items: stretch !important;
+      }
+      .bvr-param-pair > * {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+      .bvr-more-wrap { grid-column: 1 / -1; min-width: 0; align-self: start; }
+      .bvr-more-btn {
+        width: 100%;
+        padding: 12px 16px;
+        border-radius: 16px;
+        border: none;
+        background: #FFFFFF;
+        cursor: pointer;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        text-align: left;
+      }
+      .bvr-more-btn-main {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+      }
+      .bvr-more-btn-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: ${COLOR.text};
+        flex-shrink: 0;
+      }
+      .bvr-more-btn-hint {
+        font-size: 11px;
+        color: ${COLOR.muted};
+        line-height: 1.3;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .bvr-more-btn-toggle {
+        font-size: 13px;
+        color: ${COLOR.muted};
+        flex-shrink: 0;
+      }
+      .bvr-insights {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        align-items: stretch;
+        margin-bottom: 16px;
+      }
+      .bvr-insights > * { margin: 0 !important; min-width: 0; }
+      .bvr-insights-heatmap,
+      .bvr-insights-asset { display: flex; flex-direction: column; }
+      .bvr-insights-heatmap > *,
+      .bvr-insights-asset > * { flex: 1; width: 100%; }
+      .bvr-insights-breakeven { grid-column: 1 / -1; }
+      .bvr-tail {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .bvr-tail > * { margin: 0 !important; }
+      .bvr-actions { padding: 0 !important; }
+      @media (max-width: 880px) {
+        .bvr-shell { width: calc(100vw - 24px); padding-top: 12px; }
+        .bvr-nav { flex-wrap: wrap; gap: 12px; padding: 12px 14px; }
+        .bvr-nav-meta { width: 100%; order: 3; }
+        .bvr-card-grid,
+        .bvr-settings-grid,
+        .bvr-assume-grid { grid-template-columns: 1fr !important; }
+        .bvr-grid { grid-template-columns: 1fr !important; }
+        .bvr-insights { grid-template-columns: 1fr; }
+        .bvr-insights-breakeven { grid-column: 1; }
+        .bvr-setup-row { grid-template-columns: 1fr; }
+        .bvr-setup-mode .bvr-mode-grid { grid-template-columns: 1fr !important; }
+      }
+    `}</style>
   );
 }
 
@@ -410,15 +596,16 @@ export default function App() {
     if (!node || exporting) return;
     setExporting(true);
     var h = node.scrollHeight;
+    var w = Math.min(1180, Math.max(360, node.offsetWidth || 480));
     toPng(node, {
       cacheBust: true,
       backgroundColor: COLOR.bg,
-      width: 480,
+      width: w,
       height: h,
       pixelRatio: 2,
       style: {
-        width: "480px",
-        maxWidth: "480px",
+        width: w + "px",
+        maxWidth: w + "px",
         margin: "0",
         overflow: "visible",
         maxHeight: "none",
@@ -446,97 +633,52 @@ export default function App() {
   var areaDiff = effRentArea - effBuyArea;
 
   return (
-    <div style={{ minHeight: "100vh", background: COLOR.bg, fontFamily: "system-ui, sans-serif", color: COLOR.text }}>
-      <div ref={mainRef} style={{ maxWidth: 480, margin: "0 auto", padding: "0 0 40px", background: COLOR.bg }}>
+    <div className="bvr-page" style={{ minHeight: "100vh", fontFamily: "system-ui, sans-serif", color: COLOR.text }}>
+      <ResponsiveStyles />
+      <div ref={mainRef} className="bvr-shell">
 
-        {/* ── Header ── */}
-        <div style={{ padding: "32px 20px 0" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-            <div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.primary, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>FINANCIAL CALCULATOR</div>
-              <h1 style={{ fontSize: 28, fontWeight: 800, color: COLOR.text, margin: "0 0 4px", letterSpacing: "-0.5px" }}>{t("买房 vs 租房", "Buy vs Rent")}</h1>
-              <div style={{ fontSize: 13, color: COLOR.muted }}>{t("贷款年限 ", "Loan term ")}{loanTerm}{yearUnit()} · {mode === "same" ? t("同等面积对比", "same-size comparison") : t("不同面积对比", "different-size comparison")}</div>
+        {/* ── 顶部导航条 ── */}
+        <div className="bvr-nav">
+          <div className="bvr-brand">
+            <span style={{ fontSize: 16, fontWeight: 800, color: COLOR.text, letterSpacing: "-0.3px" }}>{t("买房 vs 租房", "Buy vs Rent")}</span>
+          </div>
+          <span className="bvr-nav-meta">{t("贷款年限 ", "Loan term ")}{loanTerm}{yearUnit()} · {mode === "same" ? t("同等面积对比", "same-size comparison") : t("不同面积对比", "different-size comparison")}</span>
+          <span className="bvr-nav-spacer" />
+          <div className="bvr-nav-actions">
+            <div style={{ display: "flex", gap: 4, padding: 3, borderRadius: 999, background: "#F4F4F8", border: "1px solid " + COLOR.border }}>
+              {["zh", "en"].map(function(nextLang) {
+                var activeLang = lang === nextLang;
+                return (
+                  <button key={nextLang} onClick={function() { setLang(nextLang); }}
+                    style={{ border: "none", borderRadius: 999, padding: "5px 11px", cursor: "pointer", fontSize: 11, fontWeight: 800,
+                      background: activeLang ? COLOR.primary : "transparent", color: activeLang ? "white" : COLOR.muted }}>
+                    {nextLang === "zh" ? "中文" : "EN"}
+                  </button>
+                );
+              })}
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
-              <div style={{ display: "flex", gap: 4, padding: 3, borderRadius: 999, background: "white", border: "1px solid " + COLOR.border }}>
-                {["zh", "en"].map(function(nextLang) {
-                  var activeLang = lang === nextLang;
-                  return (
-                    <button key={nextLang} onClick={function() { setLang(nextLang); }}
-                      style={{ border: "none", borderRadius: 999, padding: "4px 8px", cursor: "pointer", fontSize: 11, fontWeight: 800,
-                        background: activeLang ? COLOR.primary : "transparent", color: activeLang ? "white" : COLOR.muted }}>
-                      {nextLang.toUpperCase()}
-                    </button>
-                  );
-                })}
-              </div>
-              <button onClick={doReset} style={{ padding: "8px 14px", borderRadius: 12, border: "1.5px solid " + COLOR.border, background: "white", color: COLOR.muted, fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}>
-                {t("全部重置", "Reset all")}
-              </button>
-            </div>
+            <button onClick={doReset} style={{ padding: "8px 14px", borderRadius: 999, border: "1.5px solid " + COLOR.border, background: "white", color: COLOR.sub, fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}>
+              {t("全部重置", "Reset all")}
+            </button>
           </div>
+        </div>
 
-          {/* 货币选择 */}
-          <div style={{ display: "flex", gap: 6, marginTop: 14 }}>
-            {Object.keys(CURRENCIES).map(function(key) {
-              var active = currency === key;
-              return (
-                <button key={key} onClick={function() { applyPreset(key); }}
-                  style={{ padding: "5px 10px", borderRadius: 20, border: "1.5px solid", cursor: "pointer",
-                    borderColor: active ? COLOR.primary : COLOR.border,
-                    background: active ? "#EEF0FF" : "white",
-                    color: active ? COLOR.primary : COLOR.muted,
-                    display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
-                  <span style={{ fontSize: 11, fontWeight: 600 }}>{currencyText(key, "label")}</span>
-                  <span style={{ fontSize: 9, opacity: active ? 0.75 : 0.55, fontWeight: 500 }}>{currencyText(key, "example")}</span>
-                </button>
-              );
-            })}
+        {/* ── 关键假设 ── */}
+        <div className="bvr-panel">
+          <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 10 }}>
+            <div style={{ fontSize: 15, fontWeight: 800, color: COLOR.text }}>{t("关键假设", "Core assumptions")}</div>
+            <div style={{ fontSize: 11, color: COLOR.muted }}>{t("这个计算器在比较什么", "What this calculator compares")}</div>
           </div>
-
-          {/* 模式选择 */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 10 }}>
-            {[
-              ["same", t("同等面积", "Same size"), t("理论机会成本", "Opportunity cost"), t("控制面积变量，纯粹比较同一套房：买下来 vs 租着住，钱用在哪里更值？", "Control for floor area and compare one home: buy it or rent it, and where does the money work harder?")],
-              ["diff", t("不同面积", "Different sizes"), t("实际选择对比", "Real-world choice"), t("还原真实决策：买得起的小房 vs 租得到的大房，财务与生活品质如何权衡？", "Model a realistic choice: a smaller home you can buy vs a larger home you can rent.")],
-            ].map(function(item) {
-              var active = mode === item[0];
-              return (
-                <button key={item[0]} onClick={function() { setMode(item[0]); }}
-                  style={{ padding: "10px 12px", borderRadius: 14, border: "2px solid", cursor: "pointer", textAlign: "left",
-                    borderColor: active ? COLOR.primary : COLOR.border,
-                    background: active ? "#EEF0FF" : "white" }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: active ? COLOR.primary : COLOR.text, marginBottom: 2 }}>{item[1]}</div>
-                  <div style={{ fontSize: 10, fontWeight: 600, color: active ? COLOR.primary : COLOR.muted, marginBottom: 4, opacity: 0.8 }}>{item[2]}</div>
-                  <div style={{ fontSize: 10, color: COLOR.muted, lineHeight: 1.5 }}>{item[3]}</div>
-                </button>
-              );
-            })}
-          </div>
-          <div style={{ marginTop: 8, padding: "9px 12px", borderRadius: 10, background: mode === "same" ? "#EEF0FF" : "#EEF9F5", fontSize: 11, color: mode === "same" ? COLOR.buy : COLOR.green, lineHeight: 1.6 }}>
-            {mode === "same"
-              ? t("当前模式：买卖面积锁定相同。排除居住空间的影响，单独回答「买 vs 租」这个财务问题。", "Current mode: buying and renting use the same floor area, isolating the financial buy-vs-rent question.")
-              : t("当前模式：买房和租房面积可以不同。模拟真实市场中你实际面临的两个选项，财务结果包含了面积差带来的成本差异。", "Current mode: buying and renting can use different floor areas, so the result includes the cost of the space difference.")
-            }
-          </div>
-
-          {/* 关键假设 */}
-          <div style={{ marginTop: 8, padding: "14px 14px 12px", borderRadius: 14, background: "white", border: "1px solid " + COLOR.border }}>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 10 }}>
-              <div style={{ fontSize: 12, fontWeight: 800, color: COLOR.text }}>{t("关键假设", "Core assumptions")}</div>
-              <div style={{ fontSize: 10, color: COLOR.muted }}>{t("这个计算器在比较什么", "What this calculator compares")}</div>
-            </div>
-
+          <div className="bvr-assume-grid">
             {/* ① 买房方案 */}
-            <div style={{ display: "flex", gap: 10, marginBottom: 8, padding: "10px 12px", borderRadius: 10, background: "#EEF0FF", borderLeft: "3px solid " + COLOR.buy }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, padding: "10px 12px", borderRadius: 10, background: "#EEF0FF", borderLeft: "3px solid " + COLOR.buy }}>
               <div style={{ flexShrink: 0, fontSize: 11, fontWeight: 800, color: COLOR.buy }}>{t("① 买房", "1. Buy")}</div>
               <div style={{ flex: 1, fontSize: 11, lineHeight: 1.7, color: COLOR.text }}>
                 {t("手头有一笔钱 ", "You start with ")}<strong>{fmt(outlay)}</strong>{t("（首付 ", " (down payment ")}{downPct}%{t(" + 过户税 + 手续费），全部投入", " + transfer tax + fees) and put it into an ")}<strong>{t("自住购房", "owner-occupied home")}</strong>{t("。之后每月承担月供 + 物业费，背上 ", ". Each month you pay the mortgage plus ownership costs over a ")}{loanTerm}{yearUnit()}{t("房贷负债。资产 = ", " loan. Wealth = ")}<strong>{t("房产升值 − 贷款余额 − 卖出中介费", "property value - remaining loan - selling agent fee")}{primaryRes ? "" : t(" − 资本利得税", " - capital gains tax")}</strong>{t("，从第一天起就用 ", ", with ")}{Math.round(100/downPct)}{t(" 倍杠杆放大房价波动。", "x leverage amplifying property-price moves from day one.")}
               </div>
             </div>
-
             {/* ② 租房方案 */}
-            <div style={{ display: "flex", gap: 10, marginBottom: 8, padding: "10px 12px", borderRadius: 10, background: "#EEF9F5", borderLeft: "3px solid " + COLOR.green }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, padding: "10px 12px", borderRadius: 10, background: "#EEF9F5", borderLeft: "3px solid " + COLOR.green }}>
               <div style={{ flexShrink: 0, fontSize: 11, fontWeight: 800, color: COLOR.green }}>{t("② 租房", "2. Rent")}</div>
               <div style={{ flex: 1, fontSize: 11, lineHeight: 1.7, color: COLOR.text }}>
                 {t("同样有 ", "You also start with ")}<strong>{fmt(outlay)}</strong>{t("，不买房，", ", skip the purchase, and ")}<strong>{t("全额投入理财", "invest the full amount")}</strong>{t("（年化 ", " at ")}{invRet}%{t("）。每月省下的差额（买房月支出 − 租金）", " annually. The monthly difference (buying costs - rent) is ")}<strong>{t("继续追投", "invested too")}</strong>{t("，", ", then after ")}{loanTerm}{yearUnit()}{t("后变现按 ", " gains are taxed at ")}{invTax}%{t(" 缴资本利得税。", ".")}
@@ -545,9 +687,8 @@ export default function App() {
                 </div>
               </div>
             </div>
-
             {/* ③ 对比逻辑 */}
-            <div style={{ display: "flex", gap: 10, padding: "10px 12px", borderRadius: 10, background: "#FFFBEB", borderLeft: "3px solid #F59E0B" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, padding: "10px 12px", borderRadius: 10, background: "#FFFBEB", borderLeft: "3px solid #F59E0B" }}>
               <div style={{ flexShrink: 0, fontSize: 11, fontWeight: 800, color: "#92400E" }}>{t("③ 对比", "3. Compare")}</div>
               <div style={{ flex: 1, fontSize: 11, lineHeight: 1.7, color: COLOR.text }}>
                 <strong>{t("保持不变", "Held constant")}</strong>{t("：起始资金 ", ": starting cash ")}{fmt(outlay)}{t("、对比期 ", ", period ")}{loanTerm}{yearUnit()}{mode === "same" ? t("、居住面积一致（排除空间差异）", ", same living area") : t("、居住面积按你设定（含面积差异成本）", ", floor areas as configured")}{t("。", ". ")}
@@ -558,34 +699,68 @@ export default function App() {
           </div>
         </div>
 
-        {/* ── 月支出概览 ── */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, padding: "16px 20px 0" }}>
-          <div style={{ background: COLOR.buy, borderRadius: 18, padding: "16px", color: "white" }}>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", opacity: 0.7, marginBottom: 4 }}>
-              {t("买房月支出（首年）", "Buying monthly cost (year 1)")}{mode === "diff" ? " · " + areaText(effBuyArea) : ""}
+        {/* ── 选择币种 / 对比模式 ── */}
+        <div className="bvr-panel">
+          <div className="bvr-setup-row">
+            <div className="bvr-setup-block bvr-setup-currency">
+              <div style={{ fontSize: 15, fontWeight: 800, color: COLOR.text, marginBottom: 12 }}>{t("选择币种", "Choose currency")}</div>
+              <div className="bvr-currency-grid" style={{ display: "grid", gap: 8 }}>
+                {Object.keys(CURRENCIES).map(function(key) {
+                  var active = currency === key;
+                  return (
+                    <button key={key} onClick={function() { applyPreset(key); }}
+                      style={{ padding: "7px 10px", borderRadius: 14, border: "1.5px solid", cursor: "pointer",
+                        borderColor: active ? COLOR.primary : COLOR.border,
+                        background: active ? "#EEF0FF" : "white",
+                        color: active ? COLOR.primary : COLOR.muted,
+                        display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
+                      <span style={{ fontSize: 11, fontWeight: 600 }}>{currencyText(key, "label")}</span>
+                      <span style={{ fontSize: 9, opacity: active ? 0.75 : 0.55, fontWeight: 500 }}>{currencyText(key, "example")}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-            <div style={{ fontSize: 18, fontWeight: 800, fontFamily: "monospace" }}>{fmt(buyMonthly)}</div>
-            <div style={{ fontSize: 11, opacity: 0.65, marginTop: 4 }}>{t("月供 ", "Mortgage ")}{fmt(mortgage)} + {t("物业 ", "ownership costs ")}{fmt(fee)}</div>
+
+            <div className="bvr-setup-block bvr-setup-mode">
+              <div style={{ fontSize: 15, fontWeight: 800, color: COLOR.text, marginBottom: 12 }}>{t("对比模式", "Comparison mode")}</div>
+              <div className="bvr-mode-grid" style={{ display: "grid", gap: 10 }}>
+                {[
+                  ["same", t("同等面积", "Same size"), t("理论机会成本", "Opportunity cost"), t("控制面积变量，纯粹比较同一套房：买下来 vs 租着住，钱用在哪里更值？", "Control for floor area and compare one home: buy it or rent it, and where does the money work harder?")],
+                  ["diff", t("不同面积", "Different sizes"), t("实际选择对比", "Real-world choice"), t("还原真实决策：买得起的小房 vs 租得到的大房，财务与生活品质如何权衡？", "Model a realistic choice: a smaller home you can buy vs a larger home you can rent.")],
+                ].map(function(item) {
+                  var active = mode === item[0];
+                  return (
+                    <button key={item[0]} onClick={function() { setMode(item[0]); }}
+                      style={{ padding: "10px 12px", borderRadius: 14, border: "2px solid", cursor: "pointer", textAlign: "left",
+                        borderColor: active ? COLOR.primary : COLOR.border,
+                        background: active ? "#EEF0FF" : "white" }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: active ? COLOR.primary : COLOR.text, marginBottom: 2 }}>{item[1]}</div>
+                      <div style={{ fontSize: 10, fontWeight: 600, color: active ? COLOR.primary : COLOR.muted, marginBottom: 4, opacity: 0.8 }}>{item[2]}</div>
+                      <div style={{ fontSize: 10, color: COLOR.muted, lineHeight: 1.5 }}>{item[3]}</div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
-          <div style={{ background: COLOR.green, borderRadius: 18, padding: "16px", color: "white" }}>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", opacity: 0.7, marginBottom: 4 }}>
-              {t("租房月支出（首年）", "Renting monthly cost (year 1)")}{mode === "diff" ? " · " + areaText(effRentArea) : ""}
-            </div>
-            <div style={{ fontSize: 18, fontWeight: 800, fontFamily: "monospace" }}>{fmt(rent0)}</div>
-            <div style={{ fontSize: 11, opacity: 0.65, marginTop: 4 }}>
-              {saving >= 0 ? t("差额 ", "Difference ") + fmt(saving) + t(" 可投资", " can be invested") : t("租房多支出 ", "Renting costs ") + fmt(-saving) + perMonth() + t("", " more")}
-            </div>
+          <div style={{ marginTop: 14, padding: "9px 12px", borderRadius: 10, background: mode === "same" ? "#EEF0FF" : "#EEF9F5", fontSize: 11, color: mode === "same" ? COLOR.buy : COLOR.green, lineHeight: 1.6 }}>
+            {mode === "same"
+              ? t("当前模式：买卖面积锁定相同。排除居住空间的影响，单独回答「买 vs 租」这个财务问题。", "Current mode: buying and renting use the same floor area, isolating the financial buy-vs-rent question.")
+              : t("当前模式：买房和租房面积可以不同。模拟真实市场中你实际面临的两个选项，财务结果包含了面积差带来的成本差异。", "Current mode: buying and renting can use different floor areas, so the result includes the cost of the space difference.")
+            }
           </div>
         </div>
 
-        <div style={{ padding: "20px 20px 0" }}>
-
-          {/* ── 面积设置 ── */}
+        {/* ── 选择面积 ── */}
+        <div className="bvr-panel">
           {mode === "same" ? (
-            <Card>
+            <div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                <span style={{ fontSize: 15, fontWeight: 700 }}>{t("居住面积", "Living area")}</span>
-                <EditableNum value={area} display={areaText(area)} onChange={setArea} color={COLOR.primary} fontSize={20} />              </div>
+                <span style={{ fontSize: 15, fontWeight: 800, color: COLOR.text }}>{t("选择面积", "Choose area")}</span>
+                <EditableNum value={area} display={areaText(area)} onChange={setArea} color={COLOR.primary} fontSize={20} />
+              </div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: COLOR.muted, marginBottom: 10 }}>{t("居住面积", "Living area")}</div>
               <div style={{ position: "relative", height: 6, borderRadius: 99, background: "#E8E8EC" }}>
                 <div style={{ position: "absolute", left: 0, top: 0, height: "100%", borderRadius: 99, background: COLOR.primary, width: ((area - 20) / 130 * 100) + "%" }} />
                 <input type="range" min={20} max={150} step={1} value={area}
@@ -599,11 +774,11 @@ export default function App() {
               <div style={{ fontSize: 12, color: COLOR.muted, marginTop: 10, paddingTop: 10, borderTop: "1px solid " + COLOR.border }}>
                 {t("买房总价", "Purchase price")} = {fmtSym(buyPPM)} × {area} = <strong style={{ color: COLOR.text }}>{fmt(price)}</strong>
               </div>
-            </Card>
+            </div>
           ) : (
-            <Card>
+            <div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-                <span style={{ fontSize: 15, fontWeight: 700 }}>{t("面积设置", "Area settings")}</span>
+                <span style={{ fontSize: 15, fontWeight: 800, color: COLOR.text }}>{t("选择面积", "Choose area")}</span>
                 <span style={{ fontSize: 13, fontWeight: 700, color: areaDiff > 0 ? COLOR.green : areaDiff < 0 ? COLOR.buy : COLOR.muted,
                   background: areaDiff > 0 ? "#EEF9F5" : areaDiff < 0 ? "#EEF0FF" : COLOR.bg,
                   padding: "3px 10px", borderRadius: 999 }}>
@@ -638,12 +813,46 @@ export default function App() {
                   <div style={{ fontSize: 11, color: COLOR.muted }}>{t("月租 ", "Rent ")}{fmt(rent0)}</div>
                 </div>
               </div>
-            </Card>
+            </div>
           )}
+        </div>
+
+        <div className="bvr-grid">
+          <div className="bvr-col bvr-col-inputs">
+
+          {/* ── 月支出概览 ── */}
+          <div className="bvr-card-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div className="bvr-card-base" style={{ background: COLOR.buy, border: "none", borderRadius: 18, padding: "18px", color: "white" }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", opacity: 0.75, marginBottom: 6 }}>
+                {t("买房月支出（首年）", "Buying monthly cost (year 1)")}{mode === "diff" ? " · " + areaText(effBuyArea) : ""}
+              </div>
+              <div style={{ fontSize: 22, fontWeight: 800, fontFamily: "monospace" }}>{fmt(buyMonthly)}</div>
+              <div style={{ fontSize: 11, opacity: 0.7, marginTop: 6 }}>{t("月供 ", "Mortgage ")}{fmt(mortgage)} + {t("物业 ", "ownership costs ")}{fmt(fee)}</div>
+            </div>
+            <div className="bvr-card-base" style={{ background: COLOR.green, border: "none", borderRadius: 18, padding: "18px", color: "white" }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", opacity: 0.75, marginBottom: 6 }}>
+                {t("租房月支出（首年）", "Renting monthly cost (year 1)")}{mode === "diff" ? " · " + areaText(effRentArea) : ""}
+              </div>
+              <div style={{ fontSize: 22, fontWeight: 800, fontFamily: "monospace" }}>{fmt(rent0)}</div>
+              <div style={{ fontSize: 11, opacity: 0.7, marginTop: 6 }}>
+                {saving >= 0 ? t("差额 ", "Difference ") + fmt(saving) + t(" 可投资", " can be invested") : t("租房多支出 ", "Renting costs ") + fmt(-saving) + perMonth() + t("", " more")}
+              </div>
+            </div>
+            <div className="bvr-card-base" style={{ borderRadius: 18, padding: "18px" }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: COLOR.muted, marginBottom: 6 }}>{t("起始投入", "Initial cash")}</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: COLOR.text, fontFamily: "monospace" }}>{fmt(outlay)}</div>
+              <div style={{ fontSize: 11, color: COLOR.muted, marginTop: 6 }}>{t("首付 + 过户税 + 手续费", "Down payment + transfer tax + fees")}</div>
+            </div>
+            <div className="bvr-card-base" style={{ borderRadius: 18, padding: "18px" }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: COLOR.muted, marginBottom: 6 }}>{t("房产总价", "Purchase price")}</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: COLOR.text, fontFamily: "monospace" }}>{fmt(price)}</div>
+              <div style={{ fontSize: 11, color: COLOR.muted, marginTop: 6 }}>{fmtSym(buyPPM)}{perArea()} × {effBuyArea}</div>
+            </div>
+          </div>
 
           {/* ── 买房/租房参数 ── */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <Card p="18px">
+          <div className="bvr-card-grid bvr-param-pair" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <Card p="18px" style={{ marginBottom: 0 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.buy, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 12 }}>{t("买房", "Buying")}</div>
               <SliderField label={t("购买单价", "Purchase price per m²")} value={buyPPM}
                 min={cur.r.buyPPM[0]} max={cur.r.buyPPM[1]} step={cur.r.buyPPM[2]}
@@ -679,7 +888,7 @@ export default function App() {
               </div>
             </Card>
 
-            <Card p="18px">
+            <Card p="18px" style={{ marginBottom: 0 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.green, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 12 }}>{t("租房", "Renting")}</div>
               <SliderField label={t("租金单价", "Rent per m²")} value={rentPPM}
                 min={cur.r.rentPPM[0]} max={cur.r.rentPPM[1]} step={cur.r.rentPPM[2]}
@@ -700,15 +909,72 @@ export default function App() {
             </Card>
           </div>
 
-          {/* ── 更多设置 ── */}
-          <div>
-            <button onClick={function() { setMoreOpen(!moreOpen); }} style={{ width: "100%", padding: "14px 20px", borderRadius: 16, border: "none", background: COLOR.card, cursor: "pointer", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: 14, fontWeight: 600, color: COLOR.text }}>{t("更多设置", "More settings")}</span>
-              <span style={{ fontSize: 13, color: COLOR.muted }}>{moreOpen ? t("收起 ▲", "Collapse ▲") : t("展开 ▼", "Expand ▼")}</span>
+          </div>
+          <div className="bvr-col bvr-col-chart">
+
+          {/* ── 净资产走势图 ── */}
+          <Card mb={0} p="20px" style={{ marginBottom: 0 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4, flexShrink: 0 }}>
+              <span style={{ fontSize: 15, fontWeight: 700 }}>{t("净资产走势", "Net worth over time")}</span>
+              <span style={{ fontSize: 12, color: buyWins ? COLOR.buy : COLOR.green, fontWeight: 700 }}>{crossStatus}</span>
+            </div>
+            <div style={{ fontSize: 12, color: COLOR.muted, marginBottom: 12, flexShrink: 0 }}>{t("如当年退出（卖房/清仓）的税后到手金额", "After-tax proceeds if you exited that year")}</div>
+            <div style={{ display: "flex", gap: 8, marginBottom: 12, flexShrink: 0 }}>
+              {[["net",t("净资产走势", "Net worth")],["cost",t("累计支出", "Cumulative cost")]].map(function(item) {
+                return (
+                  <button key={item[0]} onClick={function() { setTab(item[0]); }} style={{ flex: 1, padding: "9px 0", borderRadius: 12, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, background: tab === item[0] ? COLOR.primary : "#F4F3FF", color: tab === item[0] ? "white" : COLOR.muted }}>
+                    {item[1]}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="bvr-chart-body">
+              <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="gBuy" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={COLOR.buy} stopOpacity={0.15} />
+                    <stop offset="95%" stopColor={COLOR.buy} stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="gRent" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={COLOR.green} stopOpacity={0.15} />
+                    <stop offset="95%" stopColor={COLOR.green} stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 6" stroke="#E8E8EC" vertical={false} />
+                <XAxis dataKey="yr" tick={{ fill: COLOR.muted, fontSize: 10 }} stroke="none" interval={4} tickFormatter={function(v) { return "Y" + v; }} />
+                <YAxis tick={{ fill: COLOR.muted, fontSize: 10 }} stroke="none" tickFormatter={fmtK} width={52} />
+                <Tooltip content={<ChartTip fmtK={fmtK} yearLabel={function(v) { return t("第 " + v + " 年", "Year " + v); }} />} />
+                {crossings.map(function(cx, idx) {
+                  var lc = cx.dir === "buy" ? COLOR.buy : COLOR.green;
+                  return (
+                    <ReferenceLine key={idx} x={cx.yr} stroke={lc} strokeDasharray="4 3"
+                      label={{ value: t("第" + cx.yr + "年", "Year " + cx.yr), fill: lc, fontSize: 10, position: idx % 2 === 0 ? "insideTopRight" : "insideBottomRight" }} />
+                  );
+                })}
+                {tab === "net" && <Area type="monotone" dataKey="BuyNet" name={t("买房净资产", "Buying net worth") + (mode === "diff" ? " (" + areaText(effBuyArea) + ")" : "")} stroke={COLOR.buy} strokeWidth={2.5} fill="url(#gBuy)" dot={false} activeDot={{ r: 5, fill: COLOR.buy }} />}
+                {tab === "net" && <Area type="monotone" dataKey="RentNet" name={t("租房投资组合", "Renting portfolio") + (mode === "diff" ? " (" + areaText(effRentArea) + ")" : "")} stroke={COLOR.green} strokeWidth={2.5} fill="url(#gRent)" dot={false} activeDot={{ r: 5, fill: COLOR.green }} />}
+                {tab === "cost" && <Area type="monotone" dataKey="BuyOut" name={t("买房累计支出", "Buying cumulative cost")} stroke={COLOR.buy} strokeWidth={2.5} fill="url(#gBuy)" dot={false} />}
+                {tab === "cost" && <Area type="monotone" dataKey="RentOut" name={t("租房累计支出", "Renting cumulative cost")} stroke={COLOR.green} strokeWidth={2.5} fill="url(#gRent)" dot={false} />}
+              </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+
+          </div>
+
+          {/* ── 更多设置（展开时占满整行）── */}
+          <div className="bvr-more-wrap">
+            <button type="button" className="bvr-more-btn" onClick={function() { setMoreOpen(!moreOpen); }}>
+              <div className="bvr-more-btn-main">
+                <span className="bvr-more-btn-title">{t("更多设置", "More settings")}</span>
+                <span className="bvr-more-btn-hint">{t("请根据所在地区和个人实际情况填写，参数变动会改变结论。", "Set values for your region and personal situation; changing inputs can change the conclusion.")}</span>
+              </div>
+              <span className="bvr-more-btn-toggle">{moreOpen ? t("收起 ▲", "Collapse ▲") : t("展开 ▼", "Expand ▼")}</span>
             </button>
             {moreOpen && (
               <Card p="20px" mb={0} style={{ marginTop: 10 }}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 20px" }}>
+                <div className="bvr-settings-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px 20px" }}>
                   <div>
                     <div style={{ fontSize: 12, fontWeight: 700, color: COLOR.buy, marginBottom: 14 }}>{t("买房参数", "Buying inputs")}</div>
                     <SliderField label={t("贷款利率", "Mortgage rate")} value={mRate} min={1} max={7} step={0.1} onChange={setMRate} display={mRate + "%"} color={COLOR.buy} sub={currencyText(currency, "country") + t(" 参考 ", " reference ") + cur.d.mRate + "%"} />
@@ -753,58 +1019,13 @@ export default function App() {
               </Card>
             )}
           </div>
+        </div>
 
-          {/* ── 净资产走势图 ── */}
-          <Card mb={0} p="20px" style={{ marginTop: 12 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-              <span style={{ fontSize: 15, fontWeight: 700 }}>{t("净资产走势", "Net worth over time")}</span>
-              <span style={{ fontSize: 12, color: buyWins ? COLOR.buy : COLOR.green, fontWeight: 700 }}>{crossStatus}</span>
-            </div>
-            <div style={{ fontSize: 12, color: COLOR.muted, marginBottom: 16 }}>{t("如当年退出（卖房/清仓）的税后到手金额", "After-tax proceeds if you exited that year")}</div>
-            <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-              {[["net",t("净资产走势", "Net worth")],["cost",t("累计支出", "Cumulative cost")]].map(function(item) {
-                return (
-                  <button key={item[0]} onClick={function() { setTab(item[0]); }} style={{ flex: 1, padding: "9px 0", borderRadius: 12, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, background: tab === item[0] ? COLOR.primary : "#F4F3FF", color: tab === item[0] ? "white" : COLOR.muted }}>
-                    {item[1]}
-                  </button>
-                );
-              })}
-            </div>
-            <ResponsiveContainer width="100%" height={220}>
-              <AreaChart data={chartData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="gBuy" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={COLOR.buy} stopOpacity={0.15} />
-                    <stop offset="95%" stopColor={COLOR.buy} stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="gRent" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={COLOR.green} stopOpacity={0.15} />
-                    <stop offset="95%" stopColor={COLOR.green} stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 6" stroke="#E8E8EC" vertical={false} />
-                <XAxis dataKey="yr" tick={{ fill: COLOR.muted, fontSize: 10 }} stroke="none" interval={4} tickFormatter={function(v) { return "Y" + v; }} />
-                <YAxis tick={{ fill: COLOR.muted, fontSize: 10 }} stroke="none" tickFormatter={fmtK} width={52} />
-                <Tooltip content={<ChartTip fmtK={fmtK} yearLabel={function(v) { return t("第 " + v + " 年", "Year " + v); }} />} />
-                {crossings.map(function(cx, idx) {
-                  var lc = cx.dir === "buy" ? COLOR.buy : COLOR.green;
-                  return (
-                    <ReferenceLine key={idx} x={cx.yr} stroke={lc} strokeDasharray="4 3"
-                      label={{ value: t("第" + cx.yr + "年", "Year " + cx.yr), fill: lc, fontSize: 10, position: idx % 2 === 0 ? "insideTopRight" : "insideBottomRight" }} />
-                  );
-                })}
-                {tab === "net" && <Area type="monotone" dataKey="BuyNet" name={t("买房净资产", "Buying net worth") + (mode === "diff" ? " (" + areaText(effBuyArea) + ")" : "")} stroke={COLOR.buy} strokeWidth={2.5} fill="url(#gBuy)" dot={false} activeDot={{ r: 5, fill: COLOR.buy }} />}
-                {tab === "net" && <Area type="monotone" dataKey="RentNet" name={t("租房投资组合", "Renting portfolio") + (mode === "diff" ? " (" + areaText(effRentArea) + ")" : "")} stroke={COLOR.green} strokeWidth={2.5} fill="url(#gRent)" dot={false} activeDot={{ r: 5, fill: COLOR.green }} />}
-                {tab === "cost" && <Area type="monotone" dataKey="BuyOut" name={t("买房累计支出", "Buying cumulative cost")} stroke={COLOR.buy} strokeWidth={2.5} fill="url(#gBuy)" dot={false} />}
-                {tab === "cost" && <Area type="monotone" dataKey="RentOut" name={t("租房累计支出", "Renting cumulative cost")} stroke={COLOR.green} strokeWidth={2.5} fill="url(#gRent)" dot={false} />}
-              </AreaChart>
-            </ResponsiveContainer>
-          </Card>
-
-          {/* ── Mode 2 切换分析（已移除）── */}
+        <div className="bvr-insights">
 
           {/* ── 敏感性热力图 ── */}
-          <Card p="20px" style={{ marginTop: 12 }}>
+          <div className="bvr-insights-heatmap">
+          <Card p="20px" style={{ marginBottom: 0, height: "100%" }}>
             <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>{t("敏感性热力图", "Sensitivity heatmap")}</div>
             <div style={{ fontSize: 12, color: COLOR.muted, marginBottom: 14, lineHeight: 1.6 }}>
               {t("横轴：投资收益率 · 纵轴：租金单价", "X-axis: investment return · Y-axis: rent per m²")}<br />
@@ -884,9 +1105,11 @@ export default function App() {
               </div>
             </div>
           </Card>
+          </div>
 
           {/* ── N年后资产构成 ── */}
-          <Card p="20px" style={{ marginTop: 12 }}>
+          <div className="bvr-insights-asset">
+          <Card p="20px" style={{ marginBottom: 0, height: "100%" }}>
             <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>{t(loanTerm + " 年后资产构成", "Asset mix after " + loanTerm + " years")}</div>
             <div style={{ fontSize: 12, color: COLOR.muted, marginBottom: 14 }}>{t("如当年退出（卖房 / 清仓）税后到手", "After-tax proceeds if selling or liquidating that year")}</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
@@ -942,9 +1165,11 @@ export default function App() {
               </span>
             </div>
           </Card>
+          </div>
 
           {/* ── 保本收益率 ── */}
-          <Card p="20px" style={{ marginTop: 12 }}>
+          <div className="bvr-insights-breakeven">
+          <Card p="20px" style={{ marginBottom: 0 }}>
             <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>{t("保本收益率", "Break-even return")}</div>
             <div style={{ fontSize: 12, color: COLOR.muted, marginBottom: 16, lineHeight: 1.6 }}>
               {t("租房方案中，每月节省的差额用于投资。", "In the renting case, the saved monthly difference is invested. ")}<strong style={{ color: COLOR.text }}>{t("理财年化收益率需达到多少，" + loanTerm + " 年后净资产才能追平买房？", "What annual return is needed for renting to match buying after " + loanTerm + " years?")}</strong>
@@ -976,21 +1201,23 @@ export default function App() {
               </div>
             </div>
           </Card>
+          </div>
+
+        </div>
+          <div className="bvr-tail">
 
           {/* ── 综合对比 ── */}
-          <Card p="20px" style={{ marginTop: 12 }}>
+          <Card p="20px" style={{ marginTop: 0 }}>
             <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>{t("综合对比", "Overall comparison")}</div>
             <div style={{ fontSize: 12, color: COLOR.muted, marginBottom: 14, lineHeight: 1.6 }}>
               {t("买房和租房各有真实的好处。有明显优劣之分的维度会标注占优方，各有各好处的则并列展示。", "Buying and renting each have real benefits. Dimensions with a clear advantage are marked; trade-offs are shown side by side.")}
             </div>
 
-            {/* 列标题 */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 14 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.buy, background: "#EEF0FF", borderRadius: 8, padding: "7px 10px" }}>{t("买房能获得", "Buying gives")}</div>
               <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.green, background: "#EEF9F5", borderRadius: 8, padding: "7px 10px" }}>{t("租房能获得", "Renting gives")}</div>
             </div>
 
-            {/* 财务维度 */}
             <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.muted, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 12 }}>{t("财务维度", "Financial dimensions")}</div>
             {[
               {
@@ -1060,7 +1287,6 @@ export default function App() {
               );
             })}
 
-            {/* 财务结论 */}
             <div style={{ background: buyWins ? "#EEF0FF" : "#EEF9F5", borderRadius: 12, padding: "12px 14px", marginBottom: 20 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
                 <span style={{ fontSize: 13, fontWeight: 700, color: buyWins ? COLOR.buy : COLOR.green }}>
@@ -1075,7 +1301,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* 生活维度 */}
             <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.muted, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 12 }}>{t("生活维度", "Lifestyle dimensions")}</div>
             {[
               {
@@ -1144,13 +1369,12 @@ export default function App() {
               );
             })}
 
-            {/* 注脚 */}
             <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid " + COLOR.border, fontSize: 11, color: COLOR.muted, lineHeight: 1.8 }}>
               {t("以上就是机会成本的本质：在另一方案中你能获得的这些好处，正是你选择当前方案时必须放弃的真实代价——你为这个决定所付出的隐性成本。", "This is the core of opportunity cost: the benefits you could receive from the other option are the hidden costs of the choice you make.")}
             </div>
           </Card>
 
-          <Card p="18px" style={{ marginTop: 12 }}>
+          <Card p="18px" style={{ marginTop: 0 }}>
             <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 6 }}>{t("注意声明", "Disclaimer")}</div>
             <div style={{ fontSize: 12, color: COLOR.sub, lineHeight: 1.7 }}>
               {t("结论仅供参考，用于梳理买房和租房的成本与收益。参数敏感性很高：房价涨幅、租金年涨幅、卖房资本利得税等参数因地区而异。简单改变额外月支出或投资收益率，就可能改变结论。本人在赫尔辛基，因此欧元模式以赫尔辛基 2026 年能搜集到的数据为默认，实际请自己填写。", "Results are for reference only and are meant to organize the costs and benefits of buying versus renting. The outcome is highly sensitive to assumptions such as home price growth, rent growth, selling taxes, ownership costs, and investment returns. EUR defaults are based on data I could collect for Helsinki in 2026 because I live there; please enter your own local numbers.")}
@@ -1158,7 +1382,7 @@ export default function App() {
           </Card>
 
           {/* ── 分享 & 导出 ── */}
-          <div style={{ padding: "0 20px 8px" }}>
+          <div className="bvr-actions">
             <div style={{ display: "flex", gap: 8 }}>
               <button onClick={copyShareUrl}
                 style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
@@ -1184,7 +1408,7 @@ export default function App() {
             </div>
           </div>
 
-        </div>
+          </div>
       </div>
     </div>
   );

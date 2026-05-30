@@ -14,6 +14,22 @@
 
 [https://jinda-li.github.io/buy-vs-rent/](https://jinda-li.github.io/buy-vs-rent/)
 
+## 截图预览
+
+页面已适配桌面端和手机端：桌面端使用仪表盘式布局，手机端保留同样功能并自动收敛为单列。
+
+### 中文界面
+
+![中文桌面端仪表盘](docs/screenshots/zh-desktop-full.png)
+
+![中文手机端布局](docs/screenshots/zh-mobile-full.png)
+
+### English UI
+
+![English desktop dashboard](docs/screenshots/en-desktop-full.png)
+
+![English mobile layout](docs/screenshots/en-mobile-full.png)
+
 ## 两种模式
 
 **模式 1：同等面积**

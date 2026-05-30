@@ -10,6 +10,22 @@ This interactive calculator helps you structure the financial side of the buy-vs
 
 [https://jinda-li.github.io/buy-vs-rent/](https://jinda-li.github.io/buy-vs-rent/)
 
+## Screenshots
+
+The layout is responsive: desktop uses a dashboard-style view, while mobile keeps the same features in a single-column flow.
+
+### English UI
+
+![English desktop dashboard](docs/screenshots/en-desktop-full.png)
+
+![English mobile layout](docs/screenshots/en-mobile-full.png)
+
+### Chinese UI
+
+![Chinese desktop dashboard](docs/screenshots/zh-desktop-full.png)
+
+![Chinese mobile layout](docs/screenshots/zh-mobile-full.png)
+
 ## Two Modes
 
 **Mode 1: Same living area**

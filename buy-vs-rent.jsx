@@ -65,6 +65,20 @@ function InfoTip(props) {
   );
 }
 
+function clampNum(n, min, max) {
+  if (min != null) n = Math.max(min, n);
+  if (max != null) n = Math.min(max, n);
+  return n;
+}
+
+function sliderFillPct(value, min, max) {
+  if (max <= min) return 0;
+  var t = (value - min) / (max - min);
+  if (t < 0) t = 0;
+  if (t > 1) t = 1;
+  return t * 100;
+}
+
 function EditableNum(props) {
   var i18n = useLang();
   var isZh = i18n.lang === "zh";
@@ -73,7 +87,8 @@ function EditableNum(props) {
   function startEdit() { setEditVal(String(props.value)); setEditing(true); }
   function commit(v) {
     var n = parseFloat(v);
-    if (!isNaN(n) && n > 0) props.onChange(n);
+    if (isNaN(n)) { setEditing(false); return; }
+    props.onChange(n);
     setEditing(false);
   }
   function handleKey(e) {
@@ -100,6 +115,8 @@ function EditableNum(props) {
 }
 
 function SliderField(props) {
+  var sliderVal = clampNum(props.value, props.min, props.max);
+  var fillPct = sliderFillPct(props.value, props.min, props.max);
   return (
     <div style={{ marginBottom: 18 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4 }}>
@@ -107,9 +124,9 @@ function SliderField(props) {
         <EditableNum value={props.value} display={props.display} onChange={props.onChange} color={props.color} />
       </div>
       {props.sub && <div style={{ fontSize: 11, color: COLOR.muted, marginBottom: 6 }}>{props.sub}</div>}
-      <div style={{ position: "relative", height: 6, borderRadius: 99, background: "#E8E8EC" }}>
-        <div style={{ position: "absolute", left: 0, top: 0, height: "100%", borderRadius: 99, background: props.color || COLOR.primary, width: ((props.value - props.min) / (props.max - props.min) * 100) + "%" }} />
-        <input type="range" min={props.min} max={props.max} step={props.step} value={props.value}
+      <div style={{ position: "relative", height: 6, borderRadius: 99, background: "#E8E8EC", overflow: "hidden" }}>
+        <div style={{ position: "absolute", left: 0, top: 0, height: "100%", borderRadius: 99, background: props.color || COLOR.primary, width: fillPct + "%" }} />
+        <input type="range" min={props.min} max={props.max} step={props.step} value={sliderVal}
           onChange={function(e) { props.onChange(parseFloat(e.target.value)); }}
           style={{ position: "absolute", top: "50%", transform: "translateY(-50%)", width: "100%", opacity: 0, cursor: "pointer", height: 24, margin: 0 }} />
       </div>
@@ -761,9 +778,9 @@ export default function App() {
                 <EditableNum value={area} display={areaText(area)} onChange={setArea} color={COLOR.primary} fontSize={20} />
               </div>
               <div style={{ fontSize: 12, fontWeight: 700, color: COLOR.muted, marginBottom: 10 }}>{t("居住面积", "Living area")}</div>
-              <div style={{ position: "relative", height: 6, borderRadius: 99, background: "#E8E8EC" }}>
-                <div style={{ position: "absolute", left: 0, top: 0, height: "100%", borderRadius: 99, background: COLOR.primary, width: ((area - 20) / 130 * 100) + "%" }} />
-                <input type="range" min={20} max={150} step={1} value={area}
+              <div style={{ position: "relative", height: 6, borderRadius: 99, background: "#E8E8EC", overflow: "hidden" }}>
+                <div style={{ position: "absolute", left: 0, top: 0, height: "100%", borderRadius: 99, background: COLOR.primary, width: sliderFillPct(area, 20, 150) + "%" }} />
+                <input type="range" min={20} max={150} step={1} value={clampNum(area, 20, 150)}
                   onChange={function(e) { setArea(+e.target.value); }}
                   style={{ position: "absolute", top: "50%", transform: "translateY(-50%)", width: "100%", opacity: 0, cursor: "pointer", height: 24, margin: 0 }} />
               </div>
@@ -791,9 +808,9 @@ export default function App() {
                   <div style={{ fontSize: 22, fontWeight: 800, color: COLOR.buy, marginBottom: 8 }}>
                     <EditableNum value={buyArea} display={buyArea + " m²"} onChange={setBuyArea} color={COLOR.buy} fontSize={22} />
                   </div>
-                  <div style={{ position: "relative", height: 6, borderRadius: 99, background: "#E8E8EC", marginBottom: 4 }}>
-                    <div style={{ position: "absolute", left: 0, top: 0, height: "100%", borderRadius: 99, background: COLOR.buy, width: ((buyArea - 20) / 130 * 100) + "%" }} />
-                    <input type="range" min={20} max={150} step={1} value={buyArea}
+                  <div style={{ position: "relative", height: 6, borderRadius: 99, background: "#E8E8EC", marginBottom: 4, overflow: "hidden" }}>
+                    <div style={{ position: "absolute", left: 0, top: 0, height: "100%", borderRadius: 99, background: COLOR.buy, width: sliderFillPct(buyArea, 20, 150) + "%" }} />
+                    <input type="range" min={20} max={150} step={1} value={clampNum(buyArea, 20, 150)}
                       onChange={function(e) { setBuyArea(+e.target.value); }}
                       style={{ position: "absolute", top: "50%", transform: "translateY(-50%)", width: "100%", opacity: 0, cursor: "pointer", height: 24, margin: 0 }} />
                   </div>
@@ -804,9 +821,9 @@ export default function App() {
                   <div style={{ fontSize: 22, fontWeight: 800, color: COLOR.green, marginBottom: 8 }}>
                     <EditableNum value={rentArea} display={rentArea + " m²"} onChange={setRentArea} color={COLOR.green} fontSize={22} />
                   </div>
-                  <div style={{ position: "relative", height: 6, borderRadius: 99, background: "#E8E8EC", marginBottom: 4 }}>
-                    <div style={{ position: "absolute", left: 0, top: 0, height: "100%", borderRadius: 99, background: COLOR.green, width: ((rentArea - 20) / 130 * 100) + "%" }} />
-                    <input type="range" min={20} max={150} step={1} value={rentArea}
+                  <div style={{ position: "relative", height: 6, borderRadius: 99, background: "#E8E8EC", marginBottom: 4, overflow: "hidden" }}>
+                    <div style={{ position: "absolute", left: 0, top: 0, height: "100%", borderRadius: 99, background: COLOR.green, width: sliderFillPct(rentArea, 20, 150) + "%" }} />
+                    <input type="range" min={20} max={150} step={1} value={clampNum(rentArea, 20, 150)}
                       onChange={function(e) { setRentArea(+e.target.value); }}
                       style={{ position: "absolute", top: "50%", transform: "translateY(-50%)", width: "100%", opacity: 0, cursor: "pointer", height: 24, margin: 0 }} />
                   </div>
@@ -875,9 +892,9 @@ export default function App() {
                   <EditableNum value={fee} display={fmt(fee) + perMonth()} onChange={setFee} color={COLOR.buy} />
                 </div>
                 <div style={{ fontSize: 11, color: COLOR.muted, marginBottom: 6 }}>{t("含物业管理、维修基金、保险等", "Maintenance, reserve fund, insurance, etc.")}</div>
-                <div style={{ position: "relative", height: 6, borderRadius: 99, background: "#E8E8EC" }}>
-                  <div style={{ position: "absolute", left: 0, top: 0, height: "100%", borderRadius: 99, background: COLOR.buy, width: ((fee - cur.r.fee[0]) / (cur.r.fee[1] - cur.r.fee[0]) * 100) + "%" }} />
-                  <input type="range" min={cur.r.fee[0]} max={cur.r.fee[1]} step={cur.r.fee[2]} value={fee}
+                <div style={{ position: "relative", height: 6, borderRadius: 99, background: "#E8E8EC", overflow: "hidden" }}>
+                  <div style={{ position: "absolute", left: 0, top: 0, height: "100%", borderRadius: 99, background: COLOR.buy, width: sliderFillPct(fee, cur.r.fee[0], cur.r.fee[1]) + "%" }} />
+                  <input type="range" min={cur.r.fee[0]} max={cur.r.fee[1]} step={cur.r.fee[2]} value={clampNum(fee, cur.r.fee[0], cur.r.fee[1])}
                     onChange={function(e) { setFee(+e.target.value); }}
                     style={{ position: "absolute", top: "50%", transform: "translateY(-50%)", width: "100%", opacity: 0, cursor: "pointer", height: 24, margin: 0 }} />
                 </div>
@@ -910,7 +927,7 @@ export default function App() {
           </div>
 
           </div>
-          <div className="bvr-col bvr-col-chart">
+          <div className="bvr-col bvr-col-chart" id="screenshot-chart">
 
           {/* ── 净资产走势图 ── */}
           <Card mb={0} p="20px" style={{ marginBottom: 0 }}>
@@ -1024,7 +1041,7 @@ export default function App() {
         <div className="bvr-insights">
 
           {/* ── 敏感性热力图 ── */}
-          <div className="bvr-insights-heatmap">
+          <div className="bvr-insights-heatmap" id="screenshot-heatmap">
           <Card p="20px" style={{ marginBottom: 0, height: "100%" }}>
             <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>{t("敏感性热力图", "Sensitivity heatmap")}</div>
             <div style={{ fontSize: 12, color: COLOR.muted, marginBottom: 14, lineHeight: 1.6 }}>

@@ -4,7 +4,7 @@
 
 Should you buy a home or keep renting? After the mortgage is fully paid off, which path leaves you with more assets? If you rent and invest the money you did not put into a home, can the portfolio catch up with property growth?
 
-This interactive calculator helps you structure the financial side of the buy-vs-rent decision.
+This interactive calculator helps you structure the financial side of the buy-vs-rent decision. Adjust inputs for your region and situation, then read the **net worth chart** and **sensitivity heatmap** to see how the conclusion changes.
 
 ## Live Demo
 
@@ -12,19 +12,27 @@ This interactive calculator helps you structure the financial side of the buy-vs
 
 ## Screenshots
 
-The layout is responsive: desktop uses a dashboard-style view, while mobile keeps the same features in a single-column flow.
+Two views matter most: how net worth evolves over the loan term, and how sensitive the result is to rent and investment return.
 
 ### English UI
 
-![English desktop dashboard](docs/screenshots/en-desktop-full.png)
+**Net worth over time** — after-tax proceeds if you exited in a given year (buying vs renting + investing).
 
-![English mobile layout](docs/screenshots/en-mobile-full.png)
+![English net worth chart](docs/screenshots/en-net-worth.png)
+
+**Sensitivity heatmap** — blue means buying leads, green means renting leads; darker cells show a larger gap.
+
+![English sensitivity heatmap](docs/screenshots/en-heatmap.png)
 
 ### Chinese UI
 
-![Chinese desktop dashboard](docs/screenshots/zh-desktop-full.png)
+**净资产走势** — 按年对比买房与租房（含投资）的税后可变现净资产。
 
-![Chinese mobile layout](docs/screenshots/zh-mobile-full.png)
+![中文净资产走势](docs/screenshots/zh-net-worth.png)
+
+**敏感性热力图** — 蓝色为买房领先，绿色为租房领先；颜色越深差距越大。
+
+![中文敏感性热力图](docs/screenshots/zh-heatmap.png)
 
 ## Two Modes
 
@@ -56,7 +64,7 @@ I live in Helsinki, so the EUR mode uses defaults based on data I could collect 
 ## Features
 
 - Chinese and English UI, selected automatically from browser language.
-- Manual ZH / EN switch, remembered locally.
+- Manual 中文 / EN switch, remembered locally.
 - Shareable URLs that preserve calculator inputs and language.
 - EUR, CNY, USD, and GBP presets.
 - Net worth chart, cumulative cost chart, sensitivity heatmap, and exportable long image.
@@ -66,6 +74,15 @@ I live in Helsinki, so the EUR mode uses defaults based on data I could collect 
 ```bash
 npm install
 npm run dev
+```
+
+Capture screenshots (dev server or preview must be running). The script saves a **full-page** image per language (`*-full.png`) and crops **net worth** / **heatmap** for README (`*-net-worth.png`, `*-heatmap.png`). Only the two crops are embedded above.
+
+```bash
+npx playwright install chromium
+npm run build && npm run preview
+# in another terminal:
+node scripts/capture-readme-screenshots.mjs
 ```
 
 Build for production:

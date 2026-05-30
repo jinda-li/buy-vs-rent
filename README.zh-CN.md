@@ -8,7 +8,7 @@
 
 租房省下的钱投资理财会赶上房产增长吗？
 
-这款互动计算器帮你梳理当前买房和租房的决策。
+这款互动计算器帮你梳理买房和租房的财务对比。请按所在地区和个人情况填写参数，重点看 **净资产走势** 和 **敏感性热力图** —— 参数一变，结论也可能变。
 
 ## 在线使用
 
@@ -16,19 +16,27 @@
 
 ## 截图预览
 
-页面已适配桌面端和手机端：桌面端使用仪表盘式布局，手机端保留同样功能并自动收敛为单列。
+README 里只展示两个核心结果：净资产随时间的变化，以及对租金与投资收益率的敏感性。
 
 ### 中文界面
 
-![中文桌面端仪表盘](docs/screenshots/zh-desktop-full.png)
+**净资产走势** — 若在某年退出（卖房或清仓），买房与租房方案的税后到手对比。
 
-![中文手机端布局](docs/screenshots/zh-mobile-full.png)
+![中文净资产走势](docs/screenshots/zh-net-worth.png)
+
+**敏感性热力图** — 蓝色为买房净资产更高，绿色为租房更高；颜色越深表示差距越大（占房价百分比）。
+
+![中文敏感性热力图](docs/screenshots/zh-heatmap.png)
 
 ### English UI
 
-![English desktop dashboard](docs/screenshots/en-desktop-full.png)
+**Net worth over time** — year-by-year after-tax net worth if you exited that year.
 
-![English mobile layout](docs/screenshots/en-mobile-full.png)
+![English net worth chart](docs/screenshots/en-net-worth.png)
+
+**Sensitivity heatmap** — buying vs renting under different rent and return assumptions.
+
+![English sensitivity heatmap](docs/screenshots/en-heatmap.png)
 
 ## 两种模式
 
@@ -60,7 +68,7 @@
 ## 功能
 
 - 中英文界面，根据浏览器语言自动选择。
-- 支持手动切换 ZH / EN，并记住选择。
+- 支持手动切换 中文 / EN，并记住选择。
 - 分享链接会保留计算参数和语言。
 - 支持 EUR、CNY、USD、GBP 四种预设。
 - 包含净资产走势、累计支出、敏感性热力图，并支持导出长图。
@@ -70,6 +78,15 @@
 ```bash
 npm install
 npm run dev
+```
+
+重新生成截图（需先 `npm run dev` 或 `npm run preview`）。脚本会保存各语言**整页**图（`*-full.png`），并单独导出 README 用的**净资产走势**、**敏感性热力图**（`*-net-worth.png`、`*-heatmap.png`）；上文预览仅引用后两张。
+
+```bash
+npx playwright install chromium
+npm run build && npm run preview
+# 另开终端：
+node scripts/capture-readme-screenshots.mjs
 ```
 
 生产构建：

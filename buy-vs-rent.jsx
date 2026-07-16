@@ -444,7 +444,8 @@ export default function App() {
 
   var chartData = useMemo(function() {
     var loanBal = loan, propVal = price;
-    var port = outlay, invested = outlay;
+    var port = outlay, invested = outlay;   // 租房方投资组合（房贷更贵时，租房方投入差额）
+    var buyPort = 0, buyInvested = 0;       // 买房方投资组合（还清房贷后，买房方通常更便宜，把省下的差额投入市场）
     var buyOut = outlay, rentOut = 0;
     var curFee = fee, curRent = rent0;
     var rows = [];
@@ -455,18 +456,27 @@ export default function App() {
         var principal = payingMortgage ? Math.min(mortgage - interest, loanBal) : 0;
         loanBal  = Math.max(0, loanBal - principal);
         var buyCost = (payingMortgage ? mortgage : 0) + curFee;
-        var extra = buyCost - curRent;
+        var diff = buyCost - curRent; // >0 买房更贵，租房方有差额可投资；<0 买房更便宜，买房方有差额可投资
         buyOut  += buyCost;
-        port     = port * (1 + invRet / 100 / 12) + extra;
-        invested += Math.max(0, extra);
         rentOut += curRent;
+        if (diff >= 0) {
+          port    = port    * (1 + invRet / 100 / 12) + diff;
+          buyPort = buyPort * (1 + invRet / 100 / 12);
+          invested += diff;
+        } else {
+          port    = port    * (1 + invRet / 100 / 12);
+          buyPort = buyPort * (1 + invRet / 100 / 12) + (-diff);
+          buyInvested += -diff;
+        }
       }
       curFee  = curFee  * (1 + feeGrowth  / 100);
       curRent = curRent * (1 + rentGrowth / 100);
       propVal = propVal * (1 + propGrowth / 100);
       var capGain    = Math.max(0, propVal - price);
       var capTax     = primaryRes ? 0 : capGain * 0.30;
-      var buyWealth  = propVal - loanBal - propVal * agentFee / 100 - capTax;
+      var buyPortGain = Math.max(0, buyPort - buyInvested);
+      var buyPortNet  = buyPort - buyPortGain * (invTax / 100);
+      var buyWealth  = propVal - loanBal - propVal * agentFee / 100 - capTax + buyPortNet;
       var invGain    = Math.max(0, port - invested);
       var rentWealth = port - invGain * (invTax / 100);
       rows.push({

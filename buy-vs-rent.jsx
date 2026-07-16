@@ -353,6 +353,7 @@ function ChartTip(props) {
 }
 
 var INV_RANGE  = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+var CHART_HORIZON = 50; // 净资产走势图固定展示到第50年，覆盖还清房贷后的对比
 
 // Parse shared URL state from hash on first load
 var _init = (function() {
@@ -447,13 +448,15 @@ export default function App() {
     var buyOut = outlay, rentOut = 0;
     var curFee = fee, curRent = rent0;
     var rows = [];
-    for (var yr = 1; yr <= loanTerm; yr++) {
+    for (var yr = 1; yr <= CHART_HORIZON; yr++) {
+      var payingMortgage = yr <= loanTerm; // 还清房贷后不再有月供，只留物业费
       for (var mo = 0; mo < 12; mo++) {
-        var interest  = loanBal * (mRate / 100 / 12);
-        var principal = Math.min(mortgage - interest, loanBal);
+        var interest  = payingMortgage ? loanBal * (mRate / 100 / 12) : 0;
+        var principal = payingMortgage ? Math.min(mortgage - interest, loanBal) : 0;
         loanBal  = Math.max(0, loanBal - principal);
-        var extra = mortgage + curFee - curRent;
-        buyOut  += mortgage + curFee;
+        var buyCost = (payingMortgage ? mortgage : 0) + curFee;
+        var extra = buyCost - curRent;
+        buyOut  += buyCost;
         port     = port * (1 + invRet / 100 / 12) + extra;
         invested += Math.max(0, extra);
         rentOut += curRent;
@@ -480,7 +483,7 @@ export default function App() {
   }, [price, loan, outlay, mRate, mortgage, loanTerm, propGrowth, rentGrowth, invRet,
       rent0, fee, feeGrowth, agentFee, primaryRes, invTax]);
 
-  var last    = chartData.length > 0 ? chartData[chartData.length - 1] : null;
+  var last    = chartData.length > 0 ? chartData[loanTerm - 1] : null;
   var buyWins = last ? last.rawB > last.rawR : false;
 
   var breakEvenRate = useMemo(function() {
@@ -962,6 +965,10 @@ export default function App() {
                 <XAxis dataKey="yr" tick={{ fill: COLOR.muted, fontSize: 10 }} stroke="none" interval={4} tickFormatter={function(v) { return "Y" + v; }} />
                 <YAxis tick={{ fill: COLOR.muted, fontSize: 10 }} stroke="none" tickFormatter={fmtK} width={52} />
                 <Tooltip content={<ChartTip fmtK={fmtK} yearLabel={function(v) { return t("第 " + v + " 年", "Year " + v); }} />} />
+                {loanTerm < CHART_HORIZON && (
+                  <ReferenceLine x={loanTerm} stroke={COLOR.muted} strokeDasharray="2 4"
+                    label={{ value: t("第" + loanTerm + "年还清房贷", "Year " + loanTerm + ": loan paid off"), fill: COLOR.muted, fontSize: 10, position: "insideBottomLeft" }} />
+                )}
                 {crossings.map(function(cx, idx) {
                   var lc = cx.dir === "buy" ? COLOR.buy : COLOR.green;
                   return (

@@ -44,11 +44,7 @@ export function LangProvider(props) {
   }
 
   useEffect(function() {
-    var dict = messages[lang] || messages.en;
     document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
-    document.title = dict.metaTitle;
-    var meta = document.querySelector('meta[name="description"]');
-    if (meta) meta.setAttribute("content", dict.metaDescription);
     window.localStorage.setItem(STORAGE_KEY, lang);
   }, [lang]);
 

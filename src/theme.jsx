@@ -28,7 +28,7 @@ export function GlobalStyles() {
       .bvr-brand { display: flex; align-items: center; }
       .bvr-nav-meta { color: ${COLOR.muted}; font-size: 13px; }
       .bvr-nav-spacer { flex: 1; }
-      .bvr-nav-actions { display: flex; align-items: center; gap: 10px; }
+      .bvr-nav-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
       .bvr-card-base {
         background: #FFFFFF;
         border: 1px solid #ECEDF2;
@@ -192,6 +192,8 @@ export function GlobalStyles() {
         .bvr-shell { width: calc(100vw - 24px); padding-top: 12px; }
         .bvr-nav { flex-wrap: wrap; gap: 12px; padding: 12px 14px; }
         .bvr-nav-meta { width: 100%; order: 3; }
+        .bvr-nav-spacer { display: none; }
+        .bvr-nav-actions { width: 100%; justify-content: flex-start; }
         .bvr-card-grid,
         .bvr-settings-grid,
         .bvr-assume-grid { grid-template-columns: 1fr !important; }

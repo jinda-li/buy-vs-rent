@@ -2,6 +2,10 @@ import { useState, useMemo, useRef } from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 import { toPng } from "html-to-image";
 import { useLang } from "./src/i18n";
+import { COLOR, GlobalStyles } from "./src/theme";
+import { Label, Card, InfoTip, clampNum, sliderFillPct, EditableNum, SliderField, Row, ChartTip } from "./src/ui";
+import ToolSwitcher from "./src/ToolSwitcher";
+import SiteFooter from "./src/SiteFooter";
 
 // 各国参数来源：Finland税务局vero.fi / 中国LPR官方 / 美国Bankrate / 英国HMRC及Rightmove
 var CURRENCIES = {
@@ -22,335 +26,6 @@ var CURRENCIES = {
     d: { buyPPM: 3500,  rentPPM: 18,  fee: 250, mRate: 4.5, txTax: 2.5, agentFee: 1.5, invTax: 20, downPct: 20 },
     r: { buyPPM: [1000, 30000, 200],  rentPPM: [5, 100, 1],   fee: [50, 2000, 50]  } },
 };
-
-var COLOR = {
-  bg: "#F4F3FF", card: "#FFFFFF", primary: "#5B5BD6", green: "#1E9B6B",
-  text: "#1C2024", sub: "#60646C", muted: "#87909F", border: "#E8E8EC",
-  buy: "#5B5BD6", rent: "#1E9B6B",
-};
-
-function Label(props) {
-  return (
-    <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.muted, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 6 }}>
-      {props.children}
-    </div>
-  );
-}
-
-function Card(props) {
-  return (
-    <div style={Object.assign({ background: COLOR.card, borderRadius: 22, padding: props.p || "20px", boxShadow: "0 16px 40px rgba(39,45,77,0.08)", border: "1px solid rgba(255,255,255,0.72)", marginBottom: props.mb || 12 }, props.style || {})}>
-      {props.children}
-    </div>
-  );
-}
-
-function InfoTip(props) {
-  var st = useState(false); var show = st[0]; var setShow = st[1];
-  return (
-    <span style={{ position: "relative", display: "inline-block", marginLeft: 4, verticalAlign: "middle" }}>
-      <span
-        onMouseEnter={function() { setShow(true); }}
-        onMouseLeave={function() { setShow(false); }}
-        onClick={function() { setShow(!show); }}
-        style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 15, height: 15, borderRadius: "50%", background: "#E8E8EC", color: COLOR.muted, fontSize: 9, fontWeight: 800, cursor: "pointer", userSelect: "none", lineHeight: 1 }}
-      >i</span>
-      {show && (
-        <div style={{ position: "absolute", bottom: "calc(100% + 6px)", left: "50%", transform: "translateX(-50%)", background: COLOR.text, color: "white", borderRadius: 10, padding: "10px 12px", fontSize: 11, lineHeight: 1.7, whiteSpace: "nowrap", zIndex: 99, boxShadow: "0 4px 16px rgba(0,0,0,0.18)", minWidth: 200 }}>
-          {props.children}
-          <div style={{ position: "absolute", top: "100%", left: "50%", transform: "translateX(-50%)", width: 0, height: 0, borderLeft: "5px solid transparent", borderRight: "5px solid transparent", borderTop: "5px solid " + COLOR.text }} />
-        </div>
-      )}
-    </span>
-  );
-}
-
-function clampNum(n, min, max) {
-  if (min != null) n = Math.max(min, n);
-  if (max != null) n = Math.min(max, n);
-  return n;
-}
-
-function sliderFillPct(value, min, max) {
-  if (max <= min) return 0;
-  var t = (value - min) / (max - min);
-  if (t < 0) t = 0;
-  if (t > 1) t = 1;
-  return t * 100;
-}
-
-function EditableNum(props) {
-  var i18n = useLang();
-  var isZh = i18n.lang === "zh";
-  var es = useState(false); var editing = es[0]; var setEditing = es[1];
-  var vs = useState("");    var editVal = vs[0]; var setEditVal = vs[1];
-  function startEdit() { setEditVal(String(props.value)); setEditing(true); }
-  function commit(v) {
-    var n = parseFloat(v);
-    if (isNaN(n)) { setEditing(false); return; }
-    props.onChange(n);
-    setEditing(false);
-  }
-  function handleKey(e) {
-    if (e.key === "Enter") { e.preventDefault(); commit(e.target.value); }
-    if (e.key === "Escape") setEditing(false);
-  }
-  var c = props.color || COLOR.primary;
-  if (editing) return (
-    <input autoFocus type="number" value={editVal}
-      onChange={function(e) { setEditVal(e.target.value); }}
-      onBlur={function(e) { commit(e.target.value); }}
-      onKeyDown={handleKey}
-      style={{ width: 88, fontSize: props.fontSize || 16, fontWeight: 700, color: c,
-        border: "none", borderBottom: "2px solid " + c, background: "transparent",
-        outline: "none", textAlign: "right", padding: 0, fontFamily: "inherit" }} />
-  );
-  return (
-    <span onClick={startEdit} title={props.title || (isZh ? "点击直接输入数值" : "Click to type a value")}
-      style={{ fontSize: props.fontSize || 16, fontWeight: 700, color: c, cursor: "text",
-        borderBottom: "1.5px dashed " + c + "55" }}>
-      {props.display}
-    </span>
-  );
-}
-
-function SliderField(props) {
-  var sliderVal = clampNum(props.value, props.min, props.max);
-  var fillPct = sliderFillPct(props.value, props.min, props.max);
-  return (
-    <div style={{ marginBottom: 18 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4 }}>
-        <Label>{props.label}</Label>
-        <EditableNum value={props.value} display={props.display} onChange={props.onChange} color={props.color} />
-      </div>
-      {props.sub && <div style={{ fontSize: 11, color: COLOR.muted, marginBottom: 6 }}>{props.sub}</div>}
-      <div style={{ position: "relative", height: 6, borderRadius: 99, background: "#E8E8EC", overflow: "hidden" }}>
-        <div style={{ position: "absolute", left: 0, top: 0, height: "100%", borderRadius: 99, background: props.color || COLOR.primary, width: fillPct + "%" }} />
-        <input type="range" min={props.min} max={props.max} step={props.step} value={sliderVal}
-          onChange={function(e) { props.onChange(parseFloat(e.target.value)); }}
-          style={{ position: "absolute", top: "50%", transform: "translateY(-50%)", width: "100%", opacity: 0, cursor: "pointer", height: 24, margin: 0 }} />
-      </div>
-      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 3 }}>
-        <span style={{ fontSize: 10, color: "#B0B4BE" }}>{props.minLabel || props.min}</span>
-        <span style={{ fontSize: 10, color: "#B0B4BE" }}>{props.maxLabel || props.max}</span>
-      </div>
-    </div>
-  );
-}
-
-function Row(props) {
-  return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 12, marginBottom: 12, borderBottom: props.last ? "none" : "1px solid " + COLOR.border }}>
-      <span style={{ fontSize: 13, color: COLOR.sub }}>{props.label}</span>
-      <span style={{ fontSize: 14, fontWeight: 700, color: props.color || COLOR.text, fontFamily: "monospace" }}>{props.value}</span>
-    </div>
-  );
-}
-
-function ResponsiveStyles() {
-  return (
-    <style>{`
-      .bvr-page { background: #EDEFF4; }
-      .bvr-shell {
-        width: min(1200px, calc(100vw - 40px));
-        margin: 0 auto;
-        padding: 20px 0 48px;
-      }
-      .bvr-nav {
-        display: flex;
-        align-items: center;
-        gap: 18px;
-        background: #FFFFFF;
-        border: 1px solid #ECEDF2;
-        border-radius: 18px;
-        box-shadow: 0 10px 30px rgba(39, 45, 77, 0.05);
-        padding: 12px 20px;
-        margin-bottom: 16px;
-      }
-      .bvr-brand { display: flex; align-items: center; }
-      .bvr-nav-meta { color: ${COLOR.muted}; font-size: 13px; }
-      .bvr-nav-spacer { flex: 1; }
-      .bvr-nav-actions { display: flex; align-items: center; gap: 10px; }
-      .bvr-card-base {
-        background: #FFFFFF;
-        border: 1px solid #ECEDF2;
-        border-radius: 22px;
-        box-shadow: 0 12px 34px rgba(39, 45, 77, 0.06);
-      }
-      .bvr-summary-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-        gap: 14px;
-        margin-bottom: 16px;
-      }
-      .bvr-currency-grid {
-        display: grid !important;
-        grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
-      }
-      .bvr-mode-grid,
-      .bvr-card-grid,
-      .bvr-settings-grid {
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
-      }
-      .bvr-assume-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
-        align-items: start;
-      }
-      .bvr-panel {
-        background: #FFFFFF;
-        border: 1px solid #ECEDF2;
-        border-radius: 22px;
-        box-shadow: 0 12px 34px rgba(39, 45, 77, 0.06);
-        padding: 22px;
-        margin-bottom: 16px;
-      }
-      .bvr-setup-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-        align-items: start;
-      }
-      .bvr-setup-block { min-width: 0; }
-      .bvr-setup-currency .bvr-currency-grid {
-        grid-template-columns: 1fr 1fr !important;
-      }
-      .bvr-setup-mode .bvr-mode-grid {
-        grid-template-columns: 1fr 1fr !important;
-      }
-      .bvr-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 16px;
-        align-items: stretch;
-        margin-bottom: 16px;
-      }
-      .bvr-col {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        min-width: 0;
-      }
-      .bvr-col > * { margin: 0 !important; }
-      .bvr-col-chart { min-height: 100%; }
-      .bvr-col-chart > div {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        min-height: 0;
-        height: 100%;
-      }
-      .bvr-col-chart .bvr-chart-body {
-        flex: 1;
-        min-height: 280px;
-      }
-      .bvr-col-inputs > .bvr-param-pair { flex: 1; }
-      .bvr-param-pair {
-        align-items: stretch !important;
-      }
-      .bvr-param-pair > * {
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-      }
-      .bvr-more-wrap { grid-column: 1 / -1; min-width: 0; align-self: start; }
-      .bvr-more-btn {
-        width: 100%;
-        padding: 12px 16px;
-        border-radius: 16px;
-        border: none;
-        background: #FFFFFF;
-        cursor: pointer;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        text-align: left;
-      }
-      .bvr-more-btn-main {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex: 1;
-        min-width: 0;
-        overflow: hidden;
-      }
-      .bvr-more-btn-title {
-        font-size: 14px;
-        font-weight: 600;
-        color: ${COLOR.text};
-        flex-shrink: 0;
-      }
-      .bvr-more-btn-hint {
-        font-size: 11px;
-        color: ${COLOR.muted};
-        line-height: 1.3;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .bvr-more-btn-toggle {
-        font-size: 13px;
-        color: ${COLOR.muted};
-        flex-shrink: 0;
-      }
-      .bvr-insights {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 16px;
-        align-items: stretch;
-        margin-bottom: 16px;
-      }
-      .bvr-insights > * { margin: 0 !important; min-width: 0; }
-      .bvr-insights-heatmap,
-      .bvr-insights-asset { display: flex; flex-direction: column; }
-      .bvr-insights-heatmap > *,
-      .bvr-insights-asset > * { flex: 1; width: 100%; }
-      .bvr-insights-breakeven { grid-column: 1 / -1; }
-      .bvr-tail {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-      }
-      .bvr-tail > * { margin: 0 !important; }
-      .bvr-actions { padding: 0 !important; }
-      @media (max-width: 880px) {
-        .bvr-shell { width: calc(100vw - 24px); padding-top: 12px; }
-        .bvr-nav { flex-wrap: wrap; gap: 12px; padding: 12px 14px; }
-        .bvr-nav-meta { width: 100%; order: 3; }
-        .bvr-card-grid,
-        .bvr-settings-grid,
-        .bvr-assume-grid { grid-template-columns: 1fr !important; }
-        .bvr-grid { grid-template-columns: 1fr !important; }
-        .bvr-insights { grid-template-columns: 1fr; }
-        .bvr-insights-breakeven { grid-column: 1; }
-        .bvr-setup-row { grid-template-columns: 1fr; }
-        .bvr-setup-mode .bvr-mode-grid { grid-template-columns: 1fr !important; }
-      }
-    `}</style>
-  );
-}
-
-function ChartTip(props) {
-  if (!props.active || !props.payload || !props.payload.length) return null;
-  var fmtK = props.fmtK || function(v) { return String(Math.round(v)); };
-  var yearLabel = props.yearLabel || function(v) { return "Year " + v; };
-  return (
-    <div style={{ background: COLOR.card, border: "1px solid " + COLOR.border, borderRadius: 12, padding: "10px 14px", boxShadow: "0 4px 16px rgba(0,0,0,0.1)" }}>
-      <div style={{ fontSize: 11, fontWeight: 700, color: COLOR.muted, marginBottom: 6 }}>{yearLabel(props.label)}</div>
-      {props.payload.map(function(p, i) {
-        return (
-          <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 16, marginBottom: 3 }}>
-            <span style={{ fontSize: 12, color: p.color }}>{p.name}</span>
-            <span style={{ fontSize: 12, fontWeight: 700, color: COLOR.text, fontFamily: "monospace" }}>{fmtK(p.value)}</span>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
 
 var INV_RANGE  = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 var CHART_HORIZON = 50; // 净资产走势图固定展示到第50年，覆盖还清房贷后的对比
@@ -664,7 +339,7 @@ export default function App() {
 
   return (
     <div className="bvr-page" style={{ minHeight: "100vh", fontFamily: "system-ui, sans-serif", color: COLOR.text }}>
-      <ResponsiveStyles />
+      <GlobalStyles />
       <div ref={mainRef} className="bvr-shell">
 
         {/* ── 顶部导航条 ── */}
@@ -675,6 +350,7 @@ export default function App() {
           <span className="bvr-nav-meta">{t("贷款年限 ", "Loan term ")}{loanTerm}{yearUnit()} · {mode === "same" ? t("同等面积对比", "same-size comparison") : t("不同面积对比", "different-size comparison")}</span>
           <span className="bvr-nav-spacer" />
           <div className="bvr-nav-actions">
+            <ToolSwitcher />
             <div style={{ display: "flex", gap: 4, padding: 3, borderRadius: 999, background: "#F4F4F8", border: "1px solid " + COLOR.border }}>
               {["zh", "en"].map(function(nextLang) {
                 var activeLang = lang === nextLang;
@@ -1441,6 +1117,8 @@ export default function App() {
               </button>
             </div>
           </div>
+
+          <SiteFooter />
 
           </div>
       </div>

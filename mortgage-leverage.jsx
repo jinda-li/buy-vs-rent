@@ -181,6 +181,12 @@ export default function MortgageLeverage() {
             <strong style={{ color: COLOR.text }}>{t("这笔钱在贷款杠杆下的真实年化回报率", "the real annualized return on that money under mortgage leverage")}</strong>
             {t("，已经把杠杆效应和交易成本都算在内。", ", already accounting for leverage and transaction costs.")}
           </div>
+          <div style={{ marginTop: 12, padding: "10px 14px", borderRadius: 12, background: "#FFFBEB", borderLeft: "3px solid " + COLOR.amber }}>
+            <div style={{ fontSize: 12, color: COLOR.amber, fontWeight: 700, marginBottom: 3 }}>{t("⚠ 不包含省下的租金", "⚠ Saved rent is not included")}</div>
+            <div style={{ fontSize: 11.5, color: COLOR.sub, lineHeight: 1.7 }}>
+              {t("月供在这里被当作纯支出，没有把「自住免于租房」省下来的租金算作收益。所以这个 IRR 是偏保守的「纯杠杆投资回报率」，不是「买房 vs 租房」的综合真实回报——如果要看把住房效用也算进去的完整对比，请切换到「买房 vs 租房」计算器。", "Mortgage payments are treated as pure cash outflow here; the rent you avoid paying by living in the home is not credited back as a return. So this IRR is a conservative, leverage-only investment return, not the full economic comparison against renting. For a complete picture that includes housing utility, switch to the Buy vs Rent calculator.")}
+            </div>
+          </div>
         </div>
 
         <div className="bvr-grid">

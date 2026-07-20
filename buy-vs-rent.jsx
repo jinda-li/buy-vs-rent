@@ -329,11 +329,14 @@ export default function App() {
 
   var crossStatus = crossings.length === 0
     ? (buyWins ? t("买房领先", "Buying leads") : t("租房领先", "Renting leads"))
-    : crossings.length === 1
-      ? t("第" + crossings[0].yr + "年" + (crossings[0].dir === "buy" ? "买房" : "租房") + "超越",
-          "Year " + crossings[0].yr + ": " + (crossings[0].dir === "buy" ? "buying" : "renting") + " pulls ahead")
-      : t("第" + crossings[0].yr + "年" + (crossings[0].dir === "buy" ? "买房" : "租房") + "超越，第" + crossings[1].yr + "年再度超越",
-          "Year " + crossings[0].yr + ": " + (crossings[0].dir === "buy" ? "buying" : "renting") + " pulls ahead; year " + crossings[1].yr + ": the lead changes again");
+    : crossings.map(function(cx, idx) {
+        var label = cx.dir === "buy" ? "买房" : "租房";
+        var verb = idx === 0 ? "超越" : "反超";
+        var enLabel = cx.dir === "buy" ? "buying" : "renting";
+        var enVerb = idx === 0 ? "pulls ahead" : "takes the lead back";
+        return t("第" + cx.yr + "年" + label + verb,
+                 "Year " + cx.yr + ": " + enLabel + " " + enVerb);
+      }).join(t("，", "; "));
 
   var areaDiff = effRentArea - effBuyArea;
 
